@@ -1,0 +1,79 @@
+ACTA DE REUNIÓN — PROYECTO AURORA
+Sprint Review #14
+Fecha: 10 de enero de 2025
+Hora: 10:00 - 11:30
+Lugar: Sala Atlántico, oficina Vigo
+
+Asistentes:
+- Carlos Méndez (Scrum Master)
+- Ana Belén Rivas (Product Owner)
+- Pedro Suárez (Tech Lead)
+- Marta Lois (Backend Developer)
+- Iván Reyes (QA Engineer)
+
+Ausentes:
+- Sara Domínguez (Frontend Developer) — baja médica
+
+---
+
+1. REVISIÓN DEL SPRINT ANTERIOR
+
+Pedro presenta el avance de la migración del backend de monolito a microservicios.
+Se han completado 3 de los 5 servicios planificados:
+  - Servicio de autenticación ✓
+  - Servicio de notificaciones ✓
+  - Servicio de inventario ✓
+  - Servicio de facturación — en progreso (70%)
+  - Servicio de reporting — pendiente
+
+Marta comenta que el servicio de facturación tiene una dependencia bloqueante con
+la API del proveedor de pagos (FinPay), que aún no ha entregado la documentación
+actualizada de su endpoint v3.
+
+2. PROBLEMAS IDENTIFICADOS
+
+- Retraso en la entrega de la API de FinPay: llevan 2 semanas de retraso sobre
+  lo comprometido. Raúl Domínguez (Compras) ya ha contactado al proveedor.
+- El entorno de staging se cayó dos veces esta semana por falta de memoria.
+  Pedro propone aumentar la RAM del servidor de 8GB a 16GB.
+- Iván reporta que los tests de integración del servicio de notificaciones
+  fallan intermitentemente (aprox. 1 de cada 10 ejecuciones). Sospecha de un
+  problema de race condition en el consumer de Kafka.
+
+3. SOLICITUD DE EXTENSIÓN DE PLAZO
+
+Ana Belén plantea que, dado el retraso con FinPay y los problemas de staging,
+sería razonable solicitar una extensión de 2 semanas al cliente (Grupo Industrial
+Mares). La fecha de entrega original era el 15 de febrero.
+
+Carlos pregunta si podemos entregar una versión parcial sin facturación para la
+fecha original y completar el módulo después. Pedro dice que es viable pero
+requiere un refactor del gateway para desacoplar las rutas.
+
+Decisión: Ana Belén hablará con el cliente el lunes 13 para proponer ambas
+opciones.
+
+4. PLANIFICACIÓN SPRINT #15
+
+Objetivos:
+- Completar migración del servicio de facturación (si llega la doc de FinPay)
+- Resolver race condition en servicio de notificaciones
+- Iniciar servicio de reporting (Pedro + Marta)
+- Preparar demo parcial para el cliente
+
+Story points comprometidos: 34
+
+5. ACCIONES PENDIENTES
+
+| Responsable    | Acción                                           | Fecha límite |
+|----------------|--------------------------------------------------|--------------|
+| Ana Belén      | Contactar cliente sobre extensión de plazo       | 13/01/2025   |
+| Pedro          | Solicitar aumento de RAM para staging            | 11/01/2025   |
+| Iván           | Investigar race condition en notificaciones      | 14/01/2025   |
+| Raúl Domínguez | Escalar retraso de FinPay a su account manager   | 11/01/2025   |
+| Marta          | Documentar endpoints del servicio de facturación | 15/01/2025   |
+
+---
+
+Próxima reunión: 24 de enero de 2025, 10:00
+Redactado por: Carlos Méndez

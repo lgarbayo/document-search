@@ -1,0 +1,121 @@
+﻿id_equipo,tipo,marca,modelo,numero_serie,asignado_a,departamento,fecha_compra,estado
+EQ-0001,laptop,ProCompute,NovaPad T14,PF4HXYZ3,Pedro Suárez,Ingeniería  ,2023-03-15,activo
+EQ-0002,laptop,TechFrame,LatiFrame 5520,SN-2024-08123,Ana Belén Rivas,Comercial,2024-01-20,activo
+EQ-0003,desktop,PrintMaster,ProFrame 400,HP3K9MT01,Carlos Méndez,Administración,2021-06-10,activo
+EQ-0004,laptop,AltaBook,AltaBook Pro 14,C02G84NXMD6T,Laura Fernández,Dirección,2023-11-05,activo
+EQ-0005,laptop,ProCompute,X1 Alloy,PF3TLWN7,Marta Lois,I+D,2024-05-22,activo
+EQ-0006,monitor,TechFrame,U2722D,CN-0F3HK8-74261,Iván Reyes,Ingeniería,2022-09-14,activo
+EQ-0007,laptop,TechFrame,LatiFrame 5520,SN-2023-04457,Raúl Domínguez,IT,2023-04-03,activo
+EQ-0008,desktop,PrintMaster,ProFrame 400,HP5N2RR09,María José Alonso,RRHH,2020-11-30,activo
+EQ-0009,servidor,TechFrame,PowerFrame R740,SN-2019-78234,Sala Servidores,IT,2019-07-12,activo
+EQ-0010,impresora,PrintMaster,LaserFrame Pro M404,VNB3L47892,Recepción,Administración,2021-03-25,activo
+EQ-0011,laptop,ProCompute,NovaPad T480,PF1RGHT5,Alejandro Varela,Ingeniería,2019-05-18,retirado
+EQ-0012,switch,NetFlow,CataLink 2960,FOC2134X7KM,Sala Servidores,IT,2020-02-28,activo
+EQ-0013,laptop,PrintMaster,EliteFrame 840,5CG2091NTZ,Beatriz Campos,Comercial,2022-07-11,activo
+EQ-0014,monitor,ChromaView,27UK850,ChromaView-907NTXP4A2,Pedro Suárez,Ingeniería,2023-03-15,activo
+EQ-0015,desktop,TechFrame,OptiFrame 7090,DL8VN3Q02,Sofía Iglesias,Legal,2023-08-19,activo
+EQ-0016,laptop,ProCompute,NovaPad T14,PF4JKLM8,Fernando Casal,I+D,2024-02-14,activo
+EQ-0017,access_point,SigmaLink,SAP-AC-Pro,UAP-44F2E8B710A3,Sala Reuniones,IT,2021-10-07,activo
+EQ-0018,laptop,AltaBook,AltaBook Pro 14,C02H19QNMD6T,Diego Romero,Dirección,2024-06-30,activo
+EQ-0019,desktop,ProCompute,NovaPad T480,PF2NMPQ4,Lucía Blanco,Administración,2020-04-22,retirado
+EQ-0020,impresora,PrintMaster,LaserFrame Pro M404,VNB3L52108,Sala Reuniones,Administración,2022-01-15,activo
+EQ-0021,laptop,TechFrame,LatiFrame 5520,SN-2024-11287,Gonzalo Prieto,Ingeniería,10/09/2024,activo
+EQ-0022,monitor,TechFrame,U2722D,CN-0F3HK8-83912,Ana Belén Rivas,Comercial,2024-01-20,activo
+EQ-0023,laptop,PrintMaster,EliteFrame 840,5CG3147RWP,Natalia Vázquez,RRHH  ,2023-06-28,activo
+EQ-0024,servidor,TechFrame,PowerFrame R740,SN-2020-63419,Sala Servidores,IT,2020-09-05,activo
+EQ-0025,laptop,ProCompute,X1 Alloy,PF3XYZB2,Adrián Castro,I+D,2023-12-01,activo
+EQ-0026,desktop,PrintMaster,ProFrame 400,HP6M4TT15,Cristina Otero,Legal,2021-08-17,activo
+EQ-0027,monitor,ChromaView,27UK850,ChromaView-804RTXK3B7,Carlos Méndez,Administración,2021-06-10,activo
+EQ-0028,laptop,ProCompute,NovaPad T14,PF4BCDE6,Pablo Souto,Comercial,2024-03-08,Activo
+EQ-0029,switch,NetFlow,CataLink 2960,FOC2201Y9NP,Sala Servidores,IT,2022-05-20,activo
+EQ-0030,laptop,TechFrame,LatiFrame 5520,SN-2022-35678,Elena Pardo,Ingeniería,2022-11-12,en_reparacion
+EQ-0031,desktop,TechFrame,OptiFrame 7090,DL9WQ5R18,Raúl Domínguez,IT,2023-04-03,activo
+EQ-0032,laptop,AltaBook,AltaBook Pro 14,C02F47TNMD6T,Rosa Martínez,Dirección,2023-09-25,activo
+EQ-0033,impresora,PrintMaster,LaserFrame Pro M404,VNB3L60234,Sala Servidores,IT,2023-02-10,activo
+EQ-0034,monitor,TechFrame,U2722D,CN-0F3HK8-56734,Laura Fernández,Dirección,2023-11-05,activo
+EQ-0035,laptop,PrintMaster,EliteFrame 840,5CG1082KLN,Manuel Ríos,I+D,2021-01-30,retirado
+EQ-0036,laptop,ProCompute,NovaPad T14,PF4QRST1,Javier Salgado,Comercial,2024-07-19,activo
+EQ-0037,access_point,SigmaLink,SAP-AC-Pro,UAP-78A1D5C392E6,Sala Servidores,IT,2022-05-20,activo
+EQ-0038,desktop,PrintMaster,ProFrame 400,HP7P8UU23,Inés Carballo,Administración,2022-03-14,activo
+EQ-0039,laptop,ProCompute,X1 Alloy,PF3FGHJ9,,I+D,2022-08-06,retirado
+EQ-0040,monitor,ChromaView,27UK850,ChromaView-612WMYH8C1,Gonzalo Prieto,Ingeniería,2024-09-10,activo
+EQ-0041,laptop,TechFrame,LatiFrame 5520,SN-2023-72104,Óscar Peña,RRHH,2023-10-22,activo
+EQ-0042,servidor,TechFrame,PowerFrame R740,SN-2022-41856,Sala Servidores,IT,2022-04-18,activo
+EQ-0043,laptop,ProCompute,NovaPad T480,PF2UVWX7,Sara Nogueira,Legal,2019-11-08,retirado
+EQ-0044,desktop,TechFrame,OptiFrame 7090,DL2XR7S34,Beatriz Campos,Comercial,2023-01-27,activo
+EQ-0045,monitor,TechFrame,U2722D,CN-0F3HK8-29847,Marta Lois,I+D,2024-05-22,activo
+EQ-0046,laptop,PrintMaster,EliteFrame 840,5CG4218TVB,Álvaro Gil,Ingeniería,2024-04-15,activo
+EQ-0047,switch,NetFlow,CataLink 2960,FOC2315Z3RQ,Sala Servidores,IT,2023-07-09,activo
+EQ-0048,laptop,AltaBook,AltaBook Pro 14,C02J62VNMD6T,María José Alonso,RRHH,2024-11-18,activo
+EQ-0049,impresora,PrintMaster,LaserFrame Pro M404,VNB3L71567,Recepción,Comercial,2024-01-05,activo
+EQ-0050,laptop,ProCompute,NovaPad T14,PF4MNOP5,Sandra Lago,Administración,21/08/2024,activo
+EQ-0051,desktop,PrintMaster,ProFrame 400,HP8Q1VV30,Iván Reyes,Ingeniería,2022-09-14,activo
+EQ-0052,monitor,ChromaView,27UK850,ChromaView-503YNZJ5D8,Adrián Castro,I+D,2023-12-01,activo
+EQ-0053,laptop,TechFrame,LatiFrame 5520,SN-2021-89432,Roberto Vidal,Comercial,2021-12-03,en_reparacion
+EQ-0054,laptop,ProCompute,X1 Alloy,PF3KLMN3,Teresa Loureiro,IT,2023-05-17,activo
+EQ-0055,access_point,SigmaLink,SAP-AC-Pro,UAP-91B3F6D405H7,Sala Reuniones,IT,2023-07-09,activo
+EQ-0056,desktop,TechFrame,OptiFrame 7090,DL4YT9U47,Elena Pardo,Ingeniería,2022-11-12,activo
+EQ-0057,laptop,PrintMaster,EliteFrame 840,5CG0953JHF,Hugo Feijóo,Legal,2020-06-29,retirado
+EQ-0058,monitor,TechFrame,U2722D,CN-0F3HK8-41063,Fernando Casal,I+D,2024-02-14,activo
+EQ-0059,laptop,ProCompute,NovaPad T14,PF4WXYZ9,Pilar Durán,RRHH,2024-10-03,activo
+EQ-0060,servidor,TechFrame,PowerFrame R740,SN-2023-25673,Sala Servidores,IT,2023-07-09,activo
+EQ-0061,laptop,AltaBook,AltaBook Pro 14,C02K83WNMD6T,Pedro Suárez,Ingeniería,2025-01-10,activo
+EQ-0062,desktop,PrintMaster,ProFrame 400,HP2R6WW44,Lucía Blanco,Administración,2023-02-20,activo
+EQ-0063,impresora,PrintMaster,LaserFrame Pro M404,VNB3L83901,Sala Servidores,IT,2020-08-14,retirado
+EQ-0064,laptop,ProCompute,NovaPad T480,PF1ABCD2,Ignacio Paz,Comercial,2019-03-11,retirado
+EQ-0065,monitor,ChromaView,27UK850,ChromaView-718XPQG6E4,Raúl Domínguez,IT,2023-04-03,activo
+EQ-0066,laptop,TechFrame,LatiFrame 5520,SN-2024-56789,Carmen Bravo,Ingeniería,05/12/2024,activo
+EQ-0067,switch,NetFlow,CataLink 2960,FOC2428A1ST,Sala Servidores,IT,2024-06-15,activo
+EQ-0068,laptop,PrintMaster,EliteFrame 840,5CG5329UXD,Alejandro Varela,Ingeniería,2022-04-07,activo
+EQ-0069,desktop,TechFrame,OptiFrame 7090,DL6ZU2V63,Natalia Vázquez,RRHH,2023-06-28,activo
+EQ-0070,monitor,TechFrame,U2722D,CN-0F3HK8-67189,Pablo Souto,Comercial,2024-03-08,activo
+EQ-0071,laptop,ProCompute,X1 Alloy,PF3PQRS6,Ana Belén Rivas,Comercial,2021-09-23,retirado
+EQ-0072,laptop,ProCompute,NovaPad T14,PF4EFGH4,Daniel Couto,I+D,2024-04-28,activo
+EQ-0073,access_point,SigmaLink,SAP-AC-Pro,UAP-25C7G8E619K2,Sala Servidores,IT,2024-06-15,activo
+EQ-0074,desktop,PrintMaster,ProFrame 400,HP9S3XX51,Sofía Iglesias,Legal,2021-05-06,activo
+EQ-0075,laptop,TechFrame,LatiFrame 5520,SN-2023-14590,Cristina Otero,Legal,2023-03-30,activo
+EQ-0076,monitor,ChromaView,27UK850,ChromaView-421ZRSI7F9,Diego Romero,Dirección,2024-06-30,activo
+EQ-0077,laptop,AltaBook,AltaBook Pro 14,C02L15XNMD6T,Rosa Martínez,Dirección,2024-09-20,activo
+EQ-0078,impresora,PrintMaster,LaserFrame Pro M404,VNB3L95245,Sala Reuniones,Comercial,2024-07-22,activo
+EQ-0079,laptop,PrintMaster,EliteFrame 840,5CG6410VZF,Javier Salgado,Comercial,2022-10-16,En Reparación
+EQ-0080,desktop,ProCompute,NovaPad T480,PF2CDEF8,Óscar Peña,RRHH,2020-12-11,activo
+EQ-0081,servidor,TechFrame,PowerFrame R740,SN-2024-37901,Sala Servidores,IT,2024-08-30,activo
+EQ-0082,laptop,ProCompute,NovaPad T14,PF4IJKL7,Manuel Ríos,I+D,2024-06-12,activo
+EQ-0083,monitor,TechFrame,U2722D,CN-0F3HK8-78295,Teresa Loureiro,IT,2023-05-17,activo
+EQ-0084,laptop,TechFrame,LatiFrame 5520,SN-2020-67823,Inés Carballo,Administración,2020-07-25,retirado
+EQ-0085,desktop,TechFrame,OptiFrame 7090,DL7AV4W76,Hugo Feijóo,Legal  ,2024-01-13,activo
+EQ-0086,laptop,ProCompute,X1 Alloy,PF3TUVW1,Álvaro Gil,Ingeniería,2023-09-08,activo
+EQ-0087,switch,NetFlow,CataLink 2960,FOC2509B4UV,Sala Servidores,IT,2024-11-20,activo
+EQ-0088,monitor,ChromaView,27UK850,ChromaView-236AWTK8G3,Sandra Lago,Administración,2024-08-21,activo
+EQ-0089,laptop,PrintMaster,EliteFrame 840,5CG7501WAH,Roberto Vidal,Comercial,2024-03-19,activo
+EQ-0090,laptop,AltaBook,AltaBook Pro 14,C02M27YNMD6T,Pilar Durán,RRHH,2024-10-03,Activo
+EQ-0091,desktop,PrintMaster,ProFrame 400,HP1T5YY68,Carmen Bravo,Ingeniería,2024-12-05,activo
+EQ-0092,impresora,PrintMaster,LaserFrame Pro M404,VNB3L04578,Recepción,Administración,2023-09-30,activo
+EQ-0093,laptop,ProCompute,NovaPad T14,PF4STUV2,Ignacio Paz,Comercial,2024-05-10,activo
+EQ-0094,monitor,TechFrame,U2722D,CN-0F3HK8-90412,Alejandro Varela,Ingeniería,2022-04-07,activo
+EQ-0095,laptop,TechFrame,LatiFrame 5520,SN-2022-48156,Sara Nogueira,Legal,2022-06-14,en_reparacion
+EQ-0096,access_point,SigmaLink,SAP-AC-Pro,UAP-63D9H1F827L4,Sala Reuniones,IT,2022-01-15,activo
+EQ-0097,desktop,TechFrame,OptiFrame 7090,DL3BW6X89,Daniel Couto,I+D,2024-04-28,activo
+EQ-0098,laptop,ProCompute,NovaPad T480,PF1GHIJ6,Gonzalo Prieto,Ingeniería,2019-08-22,retirado
+EQ-0099,laptop,PrintMaster,EliteFrame 840,5CG8612XBJ,Lucía Blanco,Administración,2023-02-20,activo
+EQ-0100,monitor,ChromaView,27UK850,ChromaView-149BXUL9H6,Carlos Méndez,Administración,2023-07-15,activo
+EQ-0101,servidor,TechFrame,PowerFrame R740,SN-2021-52387,Sala Servidores,IT,2021-04-09,activo
+EQ-0102,laptop,ProCompute,X1 Alloy,PF3XYZA5,Laura Fernández,Dirección,2022-02-18,retirado
+EQ-0103,laptop,TechFrame,LatiFrame 5520,SN-2024-93201,Marta Lois,I+D,2024-11-27,activo
+EQ-0104,desktop,PrintMaster,ProFrame 400,HP4U7ZZ75,Iván Reyes,Ingeniería,2024-01-08,activo
+EQ-0105,monitor,TechFrame,U2722D,CN-0F3HK8-12536,Elena Pardo,Ingeniería,2024-07-15,activo
+EQ-0106,laptop,AltaBook,AltaBook Pro 14,C02N39ZNMD6T,Diego Romero,Dirección,2025-01-15,activo
+EQ-0107,impresora,PrintMaster,LaserFrame Pro M404,VNB3L16812,Sala Servidores,IT,2024-05-20,activo
+EQ-0108,laptop,ProCompute,NovaPad T14,PF4LMNO3,Beatriz Campos,Comercial,14/09/2024,activo
+EQ-0109,switch,NetFlow,CataLink 2960,FOC2612C6WX,Sala Servidores,IT,2025-01-08,activo
+EQ-0110,desktop,TechFrame,OptiFrame 7090,DL5CX8Y92,Sofía Iglesias,Legal,2023-08-19,activo
+EQ-0111,laptop,PrintMaster,EliteFrame 840,5CG9723YCL,Fernando Casal,I+D,2023-11-22,en_reparacion
+EQ-0112,monitor,ChromaView,27UK850,ChromaView-857CYVN2I5,Óscar Peña,RRHH,2023-10-22,activo
+EQ-0113,laptop,ProCompute,NovaPad T480,PF2KLMN9,Pablo Souto,Comercial,2020-03-05,retirado
+EQ-0114,laptop,TechFrame,LatiFrame 5520,SN-2024-27645,Cristina Otero,Legal,2024-10-31,activo
+EQ-0115,access_point,SigmaLink,SAP-AC-Pro,UAP-47E2I3G041M5,Sala Servidores,IT,2024-11-20,activo
+EQ-0116,desktop,PrintMaster,ProFrame 400,HP6V9AA82,Natalia Vázquez,RRHH,2024-06-05,activo
+EQ-0117,laptop,ProCompute,X1 Alloy,PF3BCDE8,Adrián Castro,I+D,2024-12-18,activo
+EQ-0118,monitor,TechFrame,U2722D,CN-0F3HK8-34678,Javier Salgado,Comercial,2024-07-19,activo
+EQ-0119,laptop,PrintMaster,EliteFrame 840,5CG0834ZDN,Sandra Lago,Administración,2021-07-20,retirado
+EQ-0120,servidor,TechFrame,PowerFrame R740,SN-2025-08467,Sala Servidores,IT,2025-01-12,activo

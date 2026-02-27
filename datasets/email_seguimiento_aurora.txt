@@ -1,0 +1,64 @@
+De: Pedro Suárez <p.suarez@novatech-solutions.es>
+Para: Ana Belén Rivas <ab.rivas@novatech-solutions.es>
+Fecha: 20 de enero de 2025 09:14
+Asunto: Re: Seguimiento entrega componentes - Proyecto Aurora
+
+Ana Belén,
+
+¿Sabes algo del pedido PO-2024-0156? Los ESP32 y los sensores de temperatura
+tenían que haber llegado la semana pasada y seguimos sin noticias del almacén.
+Sin esos componentes no puedo montar el prototipo del nodo edge para la demo
+del día 5.
+
+Si no llegan pronto vamos a tener que improvisar con las placas de desarrollo
+que nos quedan del proyecto anterior, y no son exactamente las mismas specs.
+
+Saludos,
+Pedro
+
+---
+
+De: Ana Belén Rivas <ab.rivas@novatech-solutions.es>
+Para: Raúl Domínguez <r.dominguez@novatech-solutions.es>
+CC: Pedro Suárez <p.suarez@novatech-solutions.es>
+Fecha: 20 de enero de 2025 10:02
+Asunto: Fwd: Re: Seguimiento entrega componentes - Proyecto Aurora
+
+Raúl,
+
+Te reenvío el correo de Pedro. El pedido PO-2024-0156 a ShenTech lleva retraso
+y lo necesitamos urgente para la demo del proyecto Aurora. ¿Puedes contactar
+al proveedor y confirmar nueva fecha?
+
+Es bastante crítico porque la demo con Grupo Mares es el 5 de febrero y Pedro
+necesita tiempo para montar y testear los nodos.
+
+Gracias,
+Ana Belén
+
+---
+
+De: Raúl Domínguez <r.dominguez@novatech-solutions.es>
+Para: Ana Belén Rivas <ab.rivas@novatech-solutions.es>
+CC: Pedro Suárez <p.suarez@novatech-solutions.es>
+Fecha: 20 de enero de 2025 14:47
+Asunto: Re: Fwd: Re: Seguimiento entrega componentes - Proyecto Aurora
+
+Hola a ambos,
+
+Acabo de hablar con el account manager de ShenTech. Resulta que el envío se
+retrasó por un problema en aduanas en Shenzhen (algo relacionado con la nueva
+normativa de exportación de componentes electrónicos que entró en vigor en
+enero).
+
+Me confirman que el paquete ya salió y el tracking muestra que está en tránsito.
+La nueva ETA es el 15 de febrero, vía Rotterdam.
+
+Sé que es tarde para la demo del 5. Opciones que se me ocurren:
+  1. Pedir envío urgente por avión del 20% del pedido (coste extra ~$600)
+  2. Ver si algún distribuidor local tiene ESP32 en stock para salir del paso
+
+¿Qué preferís? Necesito saberlo antes del miércoles para gestionar con ShenTech.
+
+Un saludo,
+Raúl

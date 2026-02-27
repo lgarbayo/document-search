@@ -1,0 +1,86 @@
+fecha;cliente;producto;cantidad;precio_unitario;total;vendedor;region
+02/01/2025;Grupo Industrial Mares;Sensor RX-400;10;89,50;895,00;Ana Belén Rivas;Galicia
+02/01/2025;InnoFlex Holdings S.A.;Licencia Panel IoT Anual;3;2400,00;7200,00;Marcos Iglesias;Galicia
+03/01/2025;Autoridad Portuaria de Marbravo;Gateway IoT GW-100;5;310,00;1550,00;Ana Belén Rivas;Galicia
+03/01/2025;Hospital Central del Noroeste;Módulo WiFi ESP32;20;52,00;1040,00;Lucía Pereira;Galicia
+04/01/2025;Ayuntamiento de Portobello;Hora consultoría técnica;8;120,00;960,00;Javier Cao;Galicia
+06/01/2025;OceanHarvest Foods S.A.;Sensor RX-400;25;89,50;2237,50;Ana Belén Rivas;Galicia
+06/01/2025;AutoNorte Fabricación S.A.;Antena LoRa AL-50;15;67,00;1005,00;Marcos Iglesias;Galicia
+07/01/2025;MercadoPlus Retail S.L.;Licencia Panel IoT Anual;2;2400,00;4800,00;Lucía Pereira;Galicia
+07/01/2025;Hospital Universitario del Cantábrico;Sensor RX-400;12;95,00;1140,00;Javier Cao;Asturias
+08/01/2025;Empresa Municipal de Aguas de Monterilla;Gateway IoT GW-100;3;310,00;930,00;Javier Cao;Asturias
+08/01/2025;Grupo Industrial Mares;Módulo WiFi ESP32;30;52,00;1560,00;Ana Belén Rivas;Galicia
+09/01/2025;InnoFlex Holdings S.A.;Hora formación;16;95,00;1520,00;Marcos Iglesias;Galicia
+09/01/2025;Autoridad Portuaria de Marbravo;Soporte Premium 12M;1;3600,00;3600,00;Ana Belén Rivas;Galicia
+10/01/2025;MetalForge Industries S.A.;Sensor RX-400;40;89,50;3580,00;Javier Cao;Asturias
+10/01/2025;Ayuntamiento de Villamar;Licencia Panel IoT Anual;4;2400,00;9600,00;Lucía Pereira;Cantabria
+10/01/2025;OceanHarvest Foods S.A.;Hora consultoría técnica;12;120,00;1440,00;Ana Belén Rivas;Galicia
+11/01/2025;Hospital Central del Noroeste;Gateway IoT GW-100;2;310,00;620,00;Lucía Pereira;Galicia
+13/01/2025;AutoNorte Fabricación S.A.;Sensor RX-400;18;95,00;1710,00;Marcos Iglesias;Galicia
+13/01/2025;Ayuntamiento de Portobello;Módulo WiFi ESP32;25;48,00;1200,00;Javier Cao;Galicia
+13/01/2025;PetroNova S.A.;Licencia Panel IoT Anual;5;2400,00;12000,00;Ana Belén Rivas;País Vasco
+14/01/2025;MercadoPlus Retail S.L.;Antena LoRa AL-50;10;67,00;670,00;Lucía Pereira;Galicia
+14/01/2025;Hospital Universitario del Cantábrico;Hora consultoría técnica;6;135,00;810,00;Javier Cao;Asturias
+14/01/2025;Autoridad Portuaria de Las Marismas;Gateway IoT GW-100;4;310,00;1240,00;Marcos Iglesias;País Vasco
+15/01/2025;Grupo Industrial Mares;Soporte Premium 12M;2;3600,00;7200,00;Ana Belén Rivas;Galicia
+15/01/2025;InnoFlex Holdings S.A.;Sensor RX-400;50;89,50;4475,00;Marcos Iglesias;Galicia
+15/01/2025;Diputación de Monterrey;Licencia Panel IoT Anual;3;2400,00;7200,00;Lucía Pereira;Galicia
+16/01/2025;Empresa Municipal de Aguas de Monterilla;Módulo WiFi ESP32;15;52,00;780,00;Javier Cao;Asturias
+16/01/2025;MetalForge Industries S.A.;Antena LoRa AL-50;20;67,00;1340,00;Javier Cao;Asturias
+16/01/2025;Ayuntamiento de Villamar;Hora formación;10;95,00;950,00;Lucía Pereira;Cantabria
+17/01/2025;OceanHarvest Foods S.A.;Gateway IoT GW-100;6;310,00;1860,00;Ana Belén Rivas;Galicia
+17/01/2025;Hospital Central del Noroeste;Licencia Panel IoT Anual;1;2400,00;2400,00;Lucía Pereira;Galicia
+17/01/2025;AutoNorte Fabricación S.A.;Hora consultoría técnica;20;120,00;2400,00;Marcos Iglesias;Galicia
+18/01/2025;Ayuntamiento de Portobello;Sensor RX-400;8;95,00;760,00;Javier Cao;Galicia
+18/01/2025;PetroNova S.A.;Módulo WiFi ESP32;35;48,00;1680,00;Ana Belén Rivas;País Vasco
+20/01/2025;MercadoPlus Retail S.L.;Sensor RX-400;14;89,50;1253,00;Lucía Pereira;Galicia
+20/01/2025;Hospital Universitario del Cantábrico;Licencia Panel IoT Anual;2;2400,00;4800,00;Javier Cao;Asturias
+20/01/2025;Autoridad Portuaria de Las Marismas;Sensor RX-400;22;95,00;2090,00;Marcos Iglesias;País Vasco
+20/01/2025;Grupo Industrial Mares;Hora formación;8;95,00;760,00;Ana Belén Rivas;Galicia
+21/01/2025;InnoFlex Holdings S.A.;Gateway IoT GW-100;10;310,00;3100,00;Marcos Iglesias;Galicia
+21/01/2025;Diputación de Monterrey;Módulo WiFi ESP32;12;52,00;624,00;Lucía Pereira;Galicia
+21/01/2025;MetalForge Industries S.A.;Soporte Premium 12M;3;3600,00;10800,00;Javier Cao;Asturias
+21/01/2025;Conservas del Atlántico S.L.;Sensor RX-400;16;89,50;1432,00;Ana Belén Rivas;Galicia
+22/01/2025;Ayuntamiento de Villamar;Antena LoRa AL-50;8;67,00;536,00;Lucía Pereira;Cantabria
+22/01/2025;OceanHarvest Foods S.A.;Licencia Panel IoT Anual;2;2400,00;4800,00;Ana Belén Rivas;Galicia
+22/01/2025;Autoridad Portuaria de Marbravo;Hora consultoría técnica;15;135,00;2025,00;Marcos Iglesias;Galicia
+23/01/2025;AutoNorte Fabricación S.A.;Módulo WiFi ESP32;40;48,00;1920,00;Marcos Iglesias;Galicia
+23/01/2025;Hospital Central del Noroeste;Sensor RX-400;6;95,00;570,00;Lucía Pereira;Galicia
+23/01/2025;Empresa Municipal de Aguas de Monterilla;Licencia Panel IoT Anual;1;2400,00;2400,00;Javier Cao;Asturias
+23/01/2025;Ayuntamiento de Portobello;Gateway IoT GW-100;3;310,00;930,00;Ana Belén Rivas;Galicia
+24/01/2025;PetroNova S.A.;Sensor RX-400;30;89,50;2685,00;Marcos Iglesias;País Vasco
+24/01/2025;MercadoPlus Retail S.L.;Hora consultoría técnica;10;120,00;1200,00;Lucía Pereira;Galicia
+24/01/2025;Hospital Universitario del Cantábrico;Antena LoRa AL-50;12;67,00;804,00;Javier Cao;Asturias
+24/01/2025;Grupo Industrial Mares;Licencia Panel IoT Anual;1;2400,00;2400,00;Ana Belén Rivas;Galicia
+25/01/2025;InnoFlex Holdings S.A.;Soporte Premium 12M;2;3600,00;7200,00;Marcos Iglesias;Galicia
+25/01/2025;Autoridad Portuaria de Las Marismas;Hora formación;12;95,00;1140,00;Javier Cao;País Vasco
+25/01/2025;Diputación de Monterrey;Sensor RX-400;9;95,00;855,00;Lucía Pereira;Galicia
+27/01/2025;Conservas del Atlántico S.L.;Gateway IoT GW-100;2;310,00;620,00;Ana Belén Rivas;Galicia
+27/01/2025;MetalForge Industries S.A.;Módulo WiFi ESP32;18;52,00;936,00;Javier Cao;Asturias
+27/01/2025;Ayuntamiento de Villamar;Sensor RX-400;15;89,50;1342,50;Lucía Pereira;Cantabria
+27/01/2025;OceanHarvest Foods S.A.;Antena LoRa AL-50;20;67,00;1340,00;Ana Belén Rivas;Galicia
+27/01/2025;AutoNorte Fabricación S.A.;Licencia Panel IoT Anual;4;2400,00;9600,00;Marcos Iglesias;Galicia
+28/01/2025;Hospital Central del Noroeste;Hora consultoría técnica;5;135,00;675,00;Lucía Pereira;Galicia
+28/01/2025;Ayuntamiento de Portobello;Soporte Premium 12M;1;3600,00;3600,00;Javier Cao;Galicia
+28/01/2025;Empresa Municipal de Aguas de Monterilla;Sensor RX-400;20;95,00;1900,00;Javier Cao;Asturias
+28/01/2025;Grupo Industrial Mares;Antena LoRa AL-50;25;67,00;1675,00;Ana Belén Rivas;Galicia
+28/01/2025;PetroNova S.A.;Hora consultoría técnica;8;150,00;1200,00;Marcos Iglesias;País Vasco
+29/01/2025;InnoFlex Holdings S.A.;Módulo WiFi ESP32;60;48,00;2880,00;Marcos Iglesias;Galicia
+29/01/2025;MercadoPlus Retail S.L.;Gateway IoT GW-100;3;310,00;930,00;Lucía Pereira;Galicia
+29/01/2025;Autoridad Portuaria de Marbravo;Sensor RX-400;15;89,50;1342,50;Ana Belén Rivas;Galicia
+29/01/2025;Hospital Universitario del Cantábrico;Licencia Panel IoT Anual;2;2400,00;4800,00;Javier Cao;Asturias
+29/01/2025;Diputación de Monterrey;Hora formación;6;95,00;570,00;Lucía Pereira;Galicia
+30/01/2025;Conservas del Atlántico S.L.;Módulo WiFi ESP32;22;52,00;1144,00;Ana Belén Rivas;Galicia
+30/01/2025;MetalForge Industries S.A.;Hora consultoría técnica;10;120,00;1200,00;Javier Cao;Asturias
+30/01/2025;Ayuntamiento de Villamar;Gateway IoT GW-100;2;310,00;620,00;Lucía Pereira;Cantabria
+30/01/2025;AutoNorte Fabricación S.A.;Soporte Premium 12M;1;3600,00;3600,00;Marcos Iglesias;Galicia
+30/01/2025;Autoridad Portuaria de Las Marismas;Sensor RX-400;18;95,00;1710,00;Ana Belén Rivas;País Vasco
+31/01/2025;OceanHarvest Foods S.A.;Módulo WiFi ESP32;28;52,00;1456,00;Lucía Pereira;Galicia
+31/01/2025;Hospital Central del Noroeste;Antena LoRa AL-50;10;67,00;670,00;Javier Cao;Galicia
+31/01/2025;Ayuntamiento de Portobello;Licencia Panel IoT Anual;2;2400,00;4800,00;Ana Belén Rivas;Galicia
+31/01/2025;Empresa Municipal de Aguas de Monterilla;Hora formación;14;85,00;1190,00;Javier Cao;Asturias
+31/01/2025;InnoFlex Holdings S.A.;Hora consultoría técnica;10;150,00;1500,00;Marcos Iglesias;Galicia
+31/01/2025;Grupo Industrial Mares;Gateway IoT GW-100;4;310,00;1240,00;Ana Belén Rivas;Galicia
+31/01/2025;PetroNova S.A.;Antena LoRa AL-50;16;67,00;1072,00;Marcos Iglesias;País Vasco
+31/01/2025;MercadoPlus Retail S.L.;Sensor RX-400;7;89,50;626,50;Lucía Pereira;Galicia
+31/01/2025;Diputación de Monterrey;Soporte Premium 12M;1;3600,00;3600,00;Lucía Pereira;Galicia

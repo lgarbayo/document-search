@@ -1,0 +1,233 @@
+LISTADO DE PROVEEDORES ACTIVOS
+Actualizado: 30 de enero de 2025
+Responsable: Raúl Domínguez — Dpto. Compras
+
+Clasificación: A = Proveedor preferente | B = Proveedor estándar | C = En evaluación
+
+---
+
+ELECTRÓNICA Y COMPONENTES
+
+1.  ShenTech Electronics Co., Ltd.
+    CIF: CN-4403210987
+    Contacto: sales@shentech-elec.cn
+    Categoría: Electrónica
+    Último pedido: 03/09/2024
+    Rating: A
+
+2.  ElectroSelect España S.A.
+    CIF: B-28456712
+    Contacto: empresas@electroselect.es
+    Categoría: Electrónica
+    Último pedido: 12/01/2025
+    Rating: A
+
+3.  ComponentWorld Inc.
+    VAT: US-75-2830843
+    Contacto: eu-sales@componentworld.com
+    Categoría: Electrónica
+    Último pedido: 28/11/2024
+    Rating: B
+
+4.  TechParts Ibérica S.A.
+    CIF: B-80163723
+    Contacto: pedidos@techparts.es
+    Categoría: Electrónica
+    Último pedido: 05/12/2024
+    Rating: B
+
+LOGÍSTICA Y TRANSPORTE
+
+5.  Transportes Noroeste S.L.
+    CIF: B-15789234
+    Contacto: operaciones@transportesnoroeste.es
+    Categoría: Logística
+    Último pedido: 22/01/2025
+    Rating: A
+
+6.  ExpressNorte S.A.
+    CIF: A-08186968
+    Contacto: express.empresas@expressnorte.com
+    Categoría: Logística
+    Último pedido: 18/01/2025
+    Rating: A
+
+7.  OceanPort Iberia S.A.
+    CIF: A-28034512
+    Contacto: iberia.bookings@oceanport.com
+    Categoría: Logística
+    Último pedido: 03/09/2024
+    Rating: B
+
+CONSULTORÍA Y SERVICIOS PROFESIONALES
+
+8.  Consultoría Vázquez & Asociados
+    CIF: B-15923456
+    Contacto: info@vazquezasociados.es
+    Categoría: Consultoría
+    Último pedido: 20/12/2024
+    Rating: A
+
+9.  Consultoría Gracia S.L.
+    CIF: B-84105782
+    Contacto: galicia@consultoriagracia.es
+    Categoría: Consultoría
+    Último pedido: 15/06/2024
+    Rating: B
+
+10. Hispano Legal Partners S.L.
+    CIF: A-28014551
+    Contacto: galicia@hispanolegal.com
+    Categoría: Consultoría (Legal)
+    Último pedido: 08/11/2023
+    Rating: B
+
+SUMINISTROS DE OFICINA
+
+11. Distribuciones Gallaecia S.L.
+    CIF: B-15345678
+    Contacto: pedidos@gallaecia-dist.es
+    Categoría: Suministros
+    Último pedido: 22/07/2024
+    Rating: A
+
+12. OfficeWorld España S.A.
+    CIF: A-82287826
+    Contacto: empresas@officeworld.es
+    Categoría: Suministros
+    Último pedido: 10/10/2024
+    Rating: B
+
+13. CloudMart Business EU S.à r.l.
+    VAT: LU-26375245
+    Contacto: business-support@cloudmart.es
+    Categoría: Suministros
+    Último pedido: 25/01/2025
+    Rating: B
+
+INFRAESTRUCTURA IT Y CLOUD
+
+14. CloudVault Iberia S.L.
+    CIF: B-87023556
+    Contacto: enterprise-es@cloudvault.com
+    Categoría: Cloud / IT
+    Último pedido: 01/01/2025 (facturación mensual)
+    Rating: A
+
+15. NeuralHost GmbH
+    VAT: DE-812871812
+    Contacto: support@neuralhost.com
+    Categoría: Cloud / IT
+    Último pedido: 01/01/2025 (facturación mensual)
+    Rating: A
+
+16. ProCompute (Spain) S.L.
+    CIF: B-84498659
+    Contacto: enterprise.iberia@procompute.com
+    Categoría: Hardware IT
+    Último pedido: 15/01/2025
+    Rating: A
+
+17. TechFrame Technologies España S.A.
+    CIF: A-84194258
+    Contacto: ventas_empresa@techframe.com
+    Categoría: Hardware IT
+    Último pedido: 03/11/2024
+    Rating: B
+
+SERVICIOS GENERALES
+
+18. Inmobiliaria Costa Atlántica S.L.
+    CIF: B-36578901
+    Contacto: empresas@costaatlantica-inmob.es
+    Categoría: Servicios (Inmobiliaria)
+    Último pedido: 01/09/2022 (contrato vigente)
+    Rating: A
+
+19. ProSecure España S.A.
+    CIF: A-62247724
+    Contacto: empresas@prosecure.es
+    Categoría: Servicios (Seguridad)
+    Último pedido: 01/01/2025 (facturación mensual)
+    Rating: B
+
+20. Limpiezas Atlánticas S.L.
+    CIF: B-15890123
+    Contacto: info@limpiezasatlanticas.es
+    Categoría: Servicios (Limpieza)
+    Último pedido: 01/01/2025 (contrato mensual)
+    Rating: B
+
+21. EnergíaViva S.A.
+    CIF: A-08015497
+    Contacto: grandesclientes@energiaviva.es
+    Categoría: Servicios (Energía)
+    Último pedido: 01/01/2025 (facturación mensual)
+    Rating: B
+
+22. TelecomNorte S.A.
+    CIF: A-78923125
+    Contacto: empresas@telecomnorte.es
+    Categoría: Servicios (Telecomunicaciones)
+    Último pedido: 01/01/2025 (facturación mensual)
+    Rating: B
+
+SOFTWARE Y LICENCIAS
+
+23. SynergySoft Pty Ltd
+    VAT: AU-83102443916
+    Contacto: enterprise-sales@synergysoft.com
+    Categoría: Software
+    Último pedido: 15/12/2024 (renovación anual)
+    Rating: A
+
+24. CodeCraft Tools s.r.o.
+    VAT: CZ-26502275
+    Contacto: sales@codecrafttools.com
+    Categoría: Software
+    Último pedido: 01/11/2024 (renovación anual)
+    Rating: A
+
+25. VersionForge B.V.
+    VAT: NL-855803"; "228B01
+    Contacto: sales@versionforge.com
+    Categoría: Software
+    Último pedido: 20/10/2024 (renovación anual)
+    Rating: A
+
+PROVEEDORES EN EVALUACIÓN
+
+26. Greenfield Energy Ltd.
+    VAT: GB-234567890
+    Contacto: partnerships@greenfield-energy.co.uk
+    Categoría: Consultoría (Energías renovables)
+    Último pedido: — (en proceso de homologación)
+    Rating: C
+
+27. MakerLab Components S.L.
+    CIF: B-08456789
+    Contacto: ventas@makerlab.es
+    Categoría: Electrónica (prototipado)
+    Último pedido: — (pedido de prueba pendiente)
+    Rating: C
+
+28. VeloShield Inc.
+    VAT: US-27-1981425
+    Contacto: enterprise@veloshield.com
+    Categoría: Cloud / IT
+    Último pedido: — (evaluando Enterprise plan)
+    Rating: C
+
+29. Gestoría Marín & Asociados
+    CIF: B-36234567
+    Contacto: info@gestoriamarin.es
+    Categoría: Consultoría (Fiscal)
+    Último pedido: — (presupuesto solicitado)
+    Rating: C
+
+30. EcoOffice Supplies S.L.
+    CIF: B-28901234
+    Contacto: info@ecooffice.es
+    Categoría: Suministros (Ecológicos)
+    Último pedido: — (muestra recibida, pendiente evaluación)
+    Rating: C

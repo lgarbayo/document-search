@@ -1,0 +1,151 @@
+﻿id_ticket,fecha_apertura,fecha_cierre,cliente,prioridad,categoria,descripcion_breve,tecnico_asignado,estado
+TK-2024-0401,2024-10-01,2024-10-03,Grupo Industrial Mares,media,software,Panel IoT no carga datos en tiempo real,Iván Reyes,resuelto
+TK-2024-0402,2024-10-01,,Autoridad Portuaria de Marbravo,alta,red,Caída total de la red en terminal de contenedores,Marta Lois,escalado
+TK-2024-0403,2024-10-02,2024-10-04,MercadoPlus Retail S.L.,baja,hardware,Impresora de tickets no corta papel correctamente,Diego Vidal,resuelto
+TK-2024-0404,2024-10-02,2024-10-05,Hospital Central del Noroeste,media,software,Error de autenticación en plataforma de historiales,Nuria Campos,resuelto
+TK-2024-0405,2024-10-02,,InnoFlex Holdings S.A.,media,red,Latencia excesiva en dashboard de logística,Óscar Brea,pendiente
+TK-2024-0406,2024-10-03,2024-10-06,OceanHarvest Foods S.A.,baja,hardware,Monitor de control en planta no enciende,Iván Reyes,resuelto
+TK-2024-0407,2024-10-03,2024-10-04,AutoNorte Fabricación S.A.,media,software,Actualización firmware sensores línea de montaje,Marta Lois,resuelto
+TK-2024-0408,2024-10-04,2024-10-07,Cervecera Dorada S.A.,baja,otro,Solicitud de alta de nuevo usuario en ERP,Diego Vidal,resuelto
+TK-2024-0409,2024-10-04,,AgroCampo S.A.,alta,red,Pérdida intermitente de conexión WiFi en naves,Nuria Campos,escalado
+TK-2024-0410,2024-10-05,2024-10-08,Ayuntamiento de Portobello,media,software,Error 503 en API de reporting municipal,Óscar Brea,resuelto
+TK-2024-0411,2024-10-05,2024-10-07,Grupo Industrial Mares,baja,hardware,Teclado de terminal de operario no responde,Iván Reyes,resuelto
+TK-2024-0412,2024-10-06,,Autoridad Portuaria de Marbravo,media,software,Fallo en módulo de facturación electrónica,Marta Lois,pendiente
+TK-2024-0413,2024-10-06,2024-10-09,MercadoPlus Retail S.L.,media,red,Switch de planta baja sin conectividad,Diego Vidal,resuelto
+TK-2024-0414,2024-10-07,2024-10-09,Hospital Central del Noroeste,alta,hardware,Sensor RX-400 sin conexión en UCI,Nuria Campos,resuelto
+TK-2024-0415,2024-10-07,2024-10-10,InnoFlex Holdings S.A.,baja,otro,Cambio de contraseña masivo para departamento,Óscar Brea,resuelto
+TK-2024-0416,2024-10-08,2024-10-10,OceanHarvest Foods S.A.,media,software,ERP no genera albaranes de expedición,Iván Reyes,resuelto
+TK-2024-0417,2024-10-08,,AutoNorte Fabricación S.A.,media,red,Fallo en gateway GW-100 zona de pintura,Marta Lois,pendiente
+TK-2024-0418,2024-10-09,2024-10-12,Cervecera Dorada S.A.,baja,hardware,Lector de código de barras no escanea,Diego Vidal,resuelto
+TK-2024-0419,2024-10-09,2024-10-11,AgroCampo S.A.,media,software,Aplicación de trazabilidad muestra datos incorrectos,Nuria Campos,resuelto
+TK-2024-0420,2024-10-10,,Ayuntamiento de Portobello,alta,red,Servidor DNS no resuelve dominios internos,Óscar Brea,escalado
+TK-2024-0421,2024-10-10,2024-10-13,Grupo Industrial Mares,baja,otro,Solicitud de configuración de VPN para teletrabajo,Iván Reyes,resuelto
+TK-2024-0422,2024-10-11,2024-10-14,Autoridad Portuaria de Marbravo,media,hardware,Cámara IP del muelle 3 sin señal de vídeo,Marta Lois,resuelto
+TK-2024-0423,2024-10-11,,MercadoPlus Retail S.L.,media,software,TPV no sincroniza precios actualizados,Diego Vidal,pendiente
+TK-2024-0424,2024-10-12,2024-10-15,Hospital Central del Noroeste,baja,red,Punto de acceso WiFi en sala de espera caído,Nuria Campos,resuelto
+TK-2024-0425,2024-10-12,2024-10-14,InnoFlex Holdings S.A.,media,software,Error al exportar informes de inventario a PDF,Óscar Brea,resuelto
+TK-2024-0426,2024-10-13,2024-10-16,OceanHarvest Foods S.A.,baja,hardware,Impresora de etiquetas atasca papel térmico,Iván Reyes,resuelto
+TK-2024-0427,2024-10-13,,AutoNorte Fabricación S.A.,alta,software,Sistema SCADA muestra alarmas falsas en línea 2,Marta Lois,escalado
+TK-2024-0428,2024-10-14,2024-10-17,Cervecera Dorada S.A.,media,red,Latencia alta en conexión con servidor ERP,Diego Vidal,resuelto
+TK-2024-0429,2024-10-14,2024-10-16,AgroCampo S.A.,baja,otro,Alta de correo corporativo para nuevo empleado,Nuria Campos,resuelto
+TK-2024-0430,2024-10-15,,Ayuntamiento de Portobello,media,hardware,Proyector de sala de plenos no detecta señal HDMI,Óscar Brea,pendiente
+TK-2024-0431,2024-10-15,2024-10-18,Grupo Industrial Mares,media,software,Dashboard de producción no actualiza gráficos,Iván Reyes,resuelto
+TK-2024-0432,2024-10-16,2024-10-18,Autoridad Portuaria de Marbravo,baja,red,Puerto del switch gestionado parpadea en ámbar,Marta Lois,resuelto
+TK-2024-0433,2024-10-16,2024-10-19,MercadoPlus Retail S.L.,media,hardware,Balanza digital descalibrada en sección frescos,Diego Vidal,resuelto
+TK-2024-0434,2024-10-17,,Hospital Central del Noroeste,alta,software,Sistema de citas online devuelve error 500,Nuria Campos,escalado
+TK-2024-0435,2024-10-17,2024-10-20,InnoFlex Holdings S.A.,baja,otro,Solicitud de acceso a carpeta compartida de diseño,Óscar Brea,resuelto
+TK-2024-0436,2024-10-18,2024-10-21,OceanHarvest Foods S.A.,media,red,VPN corporativa se desconecta cada 10 minutos,Iván Reyes,resuelto
+TK-2024-0437,2024-10-18,2024-10-20,AutoNorte Fabricación S.A.,media,software,Licencia de software CAD expirada en puesto de ingeniería,Marta Lois,resuelto
+TK-2024-0438,2024-10-19,,Cervecera Dorada S.A.,baja,hardware,Ratón inalámbrico de dirección no sincroniza,Diego Vidal,pendiente
+TK-2024-0439,2024-10-19,2024-10-22,AgroCampo S.A.,media,software,Error al importar datos CSV en sistema de gestión,Nuria Campos,resuelto
+TK-2024-0440,2024-10-20,2024-10-23,Ayuntamiento de Portobello,baja,otro,Reasignación de extensión telefónica IP,Óscar Brea,resuelto
+TK-2024-0441,2024-10-21,,Grupo Industrial Mares,alta,red,Firewall bloquea tráfico legítimo a plataforma cloud,Iván Reyes,escalado
+TK-2024-0442,2024-10-21,2024-10-24,Autoridad Portuaria de Marbravo,media,software,Módulo de gestión documental no permite subir archivos,Marta Lois,resuelto
+TK-2024-0443,2024-10-22,2024-10-24,MercadoPlus Retail S.L.,baja,hardware,Disco duro de servidor de backups al 98% de capacidad,Diego Vidal,resuelto
+TK-2024-0444,2024-10-22,2024-10-25,Hospital Central del Noroeste,media,red,Impresora de red no responde desde planta 4,Nuria Campos,resuelto
+TK-2024-0445,2024-10-23,,InnoFlex Holdings S.A.,media,software,Error de sincronización entre WMS y ERP,Óscar Brea,pendiente
+TK-2024-0446,2024-10-23,2024-10-26,OceanHarvest Foods S.A.,baja,otro,Solicitud de desinstalación de software obsoleto,Iván Reyes,resuelto
+TK-2024-0447,2024-10-24,2024-10-27,AutoNorte Fabricación S.A.,media,hardware,PLC de estación de soldadura reporta fallo de comunicación,Marta Lois,resuelto
+TK-2024-0448,2024-10-24,2024-10-26,Cervecera Dorada S.A.,media,software,Alerta de certificado SSL caducado en portal web,Diego Vidal,resuelto
+TK-2024-0449,2024-10-25,,AgroCampo S.A.,alta,red,Enlace troncal entre sedes caído por corte de fibra,Nuria Campos,escalado
+TK-2024-0450,2024-10-25,2024-10-28,Ayuntamiento de Portobello,baja,software,Formulario de registro ciudadano no valida DNI,Óscar Brea,resuelto
+TK-2024-0451,2024-10-26,2024-10-29,Grupo Industrial Mares,media,hardware,Fuente de alimentación de rack emite ruido anormal,Iván Reyes,resuelto
+TK-2024-0452,2024-10-27,,Autoridad Portuaria de Marbravo,media,red,Antena de radioenlace desalineada por temporal,Marta Lois,pendiente
+TK-2024-0453,2024-10-27,2024-10-30,MercadoPlus Retail S.L.,baja,software,Aplicación de inventario cierra inesperadamente,Diego Vidal,resuelto
+TK-2024-0454,2024-10-28,2024-10-31,Hospital Central del Noroeste,media,otro,Migración de buzones de correo a nueva plataforma,Nuria Campos,resuelto
+TK-2024-0455,2024-10-28,2024-10-30,InnoFlex Holdings S.A.,baja,hardware,Escáner de documentos no reconoce alimentador automático,Óscar Brea,resuelto
+TK-2024-0456,2024-10-29,2024-11-01,OceanHarvest Foods S.A.,media,software,Módulo de control de calidad no registra mediciones,Iván Reyes,resuelto
+TK-2024-0457,2024-10-29,,AutoNorte Fabricación S.A.,alta,red,Saturación del ancho de banda en horario de producción,Marta Lois,escalado
+TK-2024-0458,2024-10-30,2024-11-02,Cervecera Dorada S.A.,media,hardware,Sensor de temperatura de fermentación descalibrado,Diego Vidal,resuelto
+TK-2024-0459,2024-10-30,,AgroCampo S.A.,baja,software,Interfaz de usuario muestra textos en idioma incorrecto,Nuria Campos,pendiente
+TK-2024-0460,2024-10-31,2024-11-03,Ayuntamiento de Portobello,media,red,Conexión VPN de sede remota inestable,Óscar Brea,resuelto
+TK-2024-0461,2024-11-01,2024-11-04,Grupo Industrial Mares,baja,otro,Solicitud de ampliación de almacenamiento en la nube,Iván Reyes,resuelto
+TK-2024-0462,2024-11-01,2024-11-03,Autoridad Portuaria de Marbravo,media,software,Sistema AIS no recibe datos de embarcaciones,Marta Lois,resuelto
+TK-2024-0463,2024-11-02,,MercadoPlus Retail S.L.,alta,hardware,Servidor de TPV caído en supermercado central,Diego Vidal,escalado
+TK-2024-0464,2024-11-02,2024-11-05,Hospital Central del Noroeste,baja,red,Cable de red dañado en consulta 12,Nuria Campos,resuelto
+TK-2024-0465,2024-11-03,2024-11-06,InnoFlex Holdings S.A.,media,software,Problema de permisos en intranet corporativa,Óscar Brea,resuelto
+TK-2024-0466,2024-11-03,,OceanHarvest Foods S.A.,media,red,Router de planta frigorífica reiniciándose cíclicamente,Iván Reyes,pendiente
+TK-2024-0467,2024-11-04,2024-11-07,AutoNorte Fabricación S.A.,baja,hardware,Monitor de control de calidad con píxeles muertos,Marta Lois,resuelto
+TK-2024-0468,2024-11-04,2024-11-06,Cervecera Dorada S.A.,media,software,Base de datos de lotes muestra registros duplicados,Diego Vidal,resuelto
+TK-2024-0469,2024-11-05,2024-11-08,AgroCampo S.A.,baja,otro,Configuración de firma de correo electrónico corporativa,Nuria Campos,resuelto
+TK-2024-0470,2024-11-05,,Ayuntamiento de Portobello,media,software,Portal de transparencia no publica documentos nuevos,Óscar Brea,pendiente
+TK-2024-0471,2024-11-06,2024-11-09,Grupo Industrial Mares,media,hardware,UPS de sala de servidores emite pitido de batería baja,Iván Reyes,resuelto
+TK-2024-0472,2024-11-06,,Autoridad Portuaria de Marbravo,alta,red,Corte total de comunicaciones en edificio de aduanas,Marta Lois,escalado
+TK-2024-0473,2024-11-07,2024-11-10,MercadoPlus Retail S.L.,baja,software,Etiquetas de precio no se imprimen con formato correcto,Diego Vidal,resuelto
+TK-2024-0474,2024-11-07,2024-11-09,Hospital Central del Noroeste,media,hardware,Estación de trabajo de radiología muy lenta,Nuria Campos,resuelto
+TK-2024-0475,2024-11-08,2024-11-11,InnoFlex Holdings S.A.,media,red,Problemas de DNS en oficinas de diseño,Óscar Brea,resuelto
+TK-2024-0476,2024-11-08,2024-11-10,OceanHarvest Foods S.A.,baja,otro,Baja de usuario por jubilación y revocación de accesos,Iván Reyes,resuelto
+TK-2024-0477,2024-11-09,,AutoNorte Fabricación S.A.,media,software,Sistema MES no registra paradas de línea,Marta Lois,pendiente
+TK-2024-0478,2024-11-09,2024-11-12,Cervecera Dorada S.A.,media,hardware,Controlador de embotelladora no responde a comandos,Diego Vidal,resuelto
+TK-2024-0479,2024-11-10,2024-11-13,AgroCampo S.A.,baja,red,Punto de acceso WiFi en oficinas de administración caído,Nuria Campos,resuelto
+TK-2024-0480,2024-11-10,2024-11-12,Ayuntamiento de Portobello,media,software,Gestor de expedientes no genera notificaciones,Óscar Brea,resuelto
+TK-2024-0481,2024-11-11,,Grupo Industrial Mares,alta,hardware,Fallo de disco en RAID del servidor de producción,Iván Reyes,escalado
+TK-2024-0482,2024-11-11,2024-11-14,Autoridad Portuaria de Marbravo,baja,software,Visor de planos CAD no renderiza capas correctamente,Marta Lois,resuelto
+TK-2024-0483,2024-11-12,2024-11-15,MercadoPlus Retail S.L.,media,red,Caída de enlace MPLS entre almacén y central,Diego Vidal,resuelto
+TK-2024-0484,2024-11-12,2024-11-14,Hospital Central del Noroeste,baja,otro,Solicitud de instalación de software de telemedicina,Nuria Campos,resuelto
+TK-2024-0485,2024-11-13,,InnoFlex Holdings S.A.,media,software,Error de timeout en consultas al data warehouse,Óscar Brea,pendiente
+TK-2024-0486,2024-11-13,2024-11-16,OceanHarvest Foods S.A.,media,hardware,Lector RFID de muelle de carga no detecta palés,Iván Reyes,resuelto
+TK-2024-0487,2024-11-14,2024-11-17,AutoNorte Fabricación S.A.,baja,red,Cable de fibra óptica dañado en canalización de nave 5,Marta Lois,resuelto
+TK-2024-0488,2024-11-14,2024-11-16,Cervecera Dorada S.A.,media,software,Sistema de gestión de almacén no calcula stocks mínimos,Diego Vidal,resuelto
+TK-2024-0489,2024-11-15,,AgroCampo S.A.,alta,hardware,Avería en cabina de almacenamiento SAN,Nuria Campos,escalado
+TK-2024-0490,2024-11-15,2024-11-18,Ayuntamiento de Portobello,baja,software,Calendario de reservas de instalaciones no sincroniza,Óscar Brea,resuelto
+TK-2024-0491,2024-11-16,2024-11-19,Grupo Industrial Mares,media,red,Tráfico anómalo detectado en segmento de red industrial,Iván Reyes,resuelto
+TK-2024-0492,2024-11-16,,Autoridad Portuaria de Marbravo,media,hardware,Grúa pórtico con fallo en sistema de posicionamiento GPS,Marta Lois,pendiente
+TK-2024-0493,2024-11-17,2024-11-20,MercadoPlus Retail S.L.,baja,otro,Renovación de certificados digitales de facturación,Diego Vidal,resuelto
+TK-2024-0494,2024-11-17,2024-11-19,Hospital Central del Noroeste,media,software,Módulo de farmacia no sincroniza con almacén central,Nuria Campos,resuelto
+TK-2024-0495,2024-11-18,2024-11-21,InnoFlex Holdings S.A.,media,hardware,Pantalla táctil de kiosco de tienda no calibrada,Óscar Brea,resuelto
+TK-2024-0496,2024-11-18,,OceanHarvest Foods S.A.,baja,red,Velocidad de red limitada a 100 Mbps en planta nueva,Iván Reyes,pendiente
+TK-2024-0497,2024-11-19,2024-11-22,AutoNorte Fabricación S.A.,media,software,Robot de soldadura no recibe programas actualizados,Marta Lois,resuelto
+TK-2024-0498,2024-11-19,2024-11-21,Cervecera Dorada S.A.,baja,hardware,Impresora láser de oficina atascada permanentemente,Diego Vidal,resuelto
+TK-2024-0499,2024-11-20,,AgroCampo S.A.,media,red,VLAN de cámaras frigoríficas sin acceso a servidor central,Nuria Campos,pendiente
+TK-2024-0500,2024-11-20,2024-11-23,Ayuntamiento de Portobello,alta,software,Plataforma de sede electrónica fuera de servicio,Óscar Brea,resuelto
+TK-2024-0501,2024-11-21,2024-11-24,Grupo Industrial Mares,media,hardware,Ventilador de rack principal con vibración excesiva,Iván Reyes,resuelto
+TK-2024-0502,2024-11-21,2024-11-23,Autoridad Portuaria de Marbravo,baja,otro,Solicitud de cableado adicional en nueva oficina,Marta Lois,resuelto
+TK-2024-0503,2024-11-22,,MercadoPlus Retail S.L.,alta,software,Sistema de pedidos online devuelve error en checkout,Diego Vidal,escalado
+TK-2024-0504,2024-11-22,2024-11-25,Hospital Central del Noroeste,media,red,Problemas de conectividad en ala de maternidad,Nuria Campos,resuelto
+TK-2024-0505,2024-11-23,2024-11-26,InnoFlex Holdings S.A.,baja,hardware,Docking station de portátil no reconoce monitores externos,Óscar Brea,resuelto
+TK-2024-0506,2024-11-23,2024-11-25,OceanHarvest Foods S.A.,media,software,Error en cálculo de costes de producción en ERP,Iván Reyes,resuelto
+TK-2024-0507,2024-11-24,,AutoNorte Fabricación S.A.,media,red,Congestión en red durante cambio de turno,Marta Lois,pendiente
+TK-2024-0508,2024-11-24,2024-11-27,Cervecera Dorada S.A.,baja,otro,Petición de acceso remoto para auditoría externa,Diego Vidal,resuelto
+TK-2024-0509,2024-11-25,2024-11-28,AgroCampo S.A.,media,software,Aplicación de gestión ganadera no genera informes mensuales,Nuria Campos,resuelto
+TK-2024-0510,2024-11-25,2024-11-27,Ayuntamiento de Portobello,media,hardware,Servidor de correo con uso de CPU al 100%,Óscar Brea,resuelto
+TK-2024-0511,2024-11-26,,Grupo Industrial Mares,alta,red,Intrusión detectada en red OT por IDS,Iván Reyes,escalado
+TK-2024-0512,2024-11-26,2024-11-29,Autoridad Portuaria de Marbravo,baja,software,Mapa interactivo del puerto no carga capa de batimetría,Marta Lois,resuelto
+TK-2024-0513,2024-11-27,2024-11-30,MercadoPlus Retail S.L.,media,hardware,Terminal de autopago reiniciándose aleatoriamente,Diego Vidal,resuelto
+TK-2024-0514,2024-11-27,2024-11-29,Hospital Central del Noroeste,baja,red,Teléfono VoIP de recepción sin tono de marcado,Nuria Campos,resuelto
+TK-2024-0515,2024-11-28,,InnoFlex Holdings S.A.,media,software,Herramienta de BI no conecta con origen de datos ERP,Óscar Brea,pendiente
+TK-2024-0516,2024-11-28,2024-12-01,OceanHarvest Foods S.A.,media,hardware,Cámara termográfica de control de calidad desenfocada,Iván Reyes,resuelto
+TK-2024-0517,2024-11-29,2024-12-02,AutoNorte Fabricación S.A.,baja,otro,Solicitud de formación sobre nuevo sistema de tickets,Marta Lois,resuelto
+TK-2024-0518,2024-11-29,2024-12-01,Cervecera Dorada S.A.,media,software,Sistema de trazabilidad de lotes genera códigos erróneos,Diego Vidal,resuelto
+TK-2024-0519,2024-11-30,,AgroCampo S.A.,media,red,Enlace de backup entre granjas no conmuta automáticamente,Nuria Campos,pendiente
+TK-2024-0520,2024-12-01,2024-12-04,Ayuntamiento de Portobello,baja,hardware,Escáner de documentos de registro civil atascado,Óscar Brea,resuelto
+TK-2024-0521,2024-12-01,2024-12-03,Grupo Industrial Mares,media,software,Alarma de sistema SCADA no envía notificaciones email,Iván Reyes,resuelto
+TK-2024-0522,2024-12-02,,Autoridad Portuaria de Marbravo,alta,hardware,Fallo en SAI de sala de control de tráfico marítimo,Marta Lois,escalado
+TK-2024-0523,2024-12-02,2024-12-05,MercadoPlus Retail S.L.,baja,red,Repetidor WiFi de almacén no amplifica señal,Diego Vidal,resuelto
+TK-2024-0524,2024-12-03,2024-12-06,Hospital Central del Noroeste,media,software,Historia clínica electrónica no guarda notas de evolución,Nuria Campos,resuelto
+TK-2024-0525,2024-12-03,2024-12-05,InnoFlex Holdings S.A.,media,otro,Reconfiguración de políticas de grupo en Active Directory,Óscar Brea,resuelto
+TK-2024-0526,2024-12-04,,OceanHarvest Foods S.A.,baja,hardware,Báscula industrial descalibrada en línea de empaquetado,Iván Reyes,pendiente
+TK-2024-0527,2024-12-04,2024-12-07,AutoNorte Fabricación S.A.,media,software,Software de gestión de turnos no calcula horas extras,Marta Lois,resuelto
+TK-2024-0528,2024-12-05,2024-12-08,Cervecera Dorada S.A.,media,red,Firewall descarta paquetes de monitorización SNMP,Diego Vidal,resuelto
+TK-2024-0529,2024-12-05,2024-12-07,AgroCampo S.A.,baja,otro,Solicitud de portátil de sustitución por avería,Nuria Campos,resuelto
+TK-2024-0530,2024-12-06,,Ayuntamiento de Portobello,alta,software,Aplicación de padrón municipal no accesible,Óscar Brea,escalado
+TK-2024-0531,2024-12-06,2024-12-09,Grupo Industrial Mares,media,hardware,Sensor de humedad en sala de servidores fuera de rango,Iván Reyes,resuelto
+TK-2024-0532,2024-12-07,2024-12-10,Autoridad Portuaria de Marbravo,baja,red,Pérdida de paquetes en enlace con capitanía marítima,Marta Lois,resuelto
+TK-2024-0533,2024-12-07,,MercadoPlus Retail S.L.,media,software,Módulo de promociones no aplica descuentos correctamente,Diego Vidal,pendiente
+TK-2024-0534,2024-12-08,2024-12-11,Hospital Central del Noroeste,media,hardware,Equipo de videoconferencia de sala de juntas sin audio,Nuria Campos,resuelto
+TK-2024-0535,2024-12-08,2024-12-10,InnoFlex Holdings S.A.,baja,otro,Petición de migración de datos de servidor antiguo,Óscar Brea,resuelto
+TK-2024-0536,2024-12-09,2024-12-12,OceanHarvest Foods S.A.,media,software,Panel de control de cámaras frigoríficas no muestra alertas,Iván Reyes,resuelto
+TK-2024-0537,2024-12-09,,AutoNorte Fabricación S.A.,alta,red,Caída de enlace principal con casa matriz en Francia,Marta Lois,escalado
+TK-2024-0538,2024-12-10,2024-12-13,Cervecera Dorada S.A.,baja,hardware,Disco SSD de puesto de trabajo con errores SMART,Diego Vidal,resuelto
+TK-2024-0539,2024-12-10,2024-12-12,AgroCampo S.A.,media,software,Sistema de pesaje automático no registra datos en BD,Nuria Campos,resuelto
+TK-2024-0540,2024-12-11,2024-12-14,Ayuntamiento de Portobello,media,red,Proxy corporativo bloquea páginas legítimas del BOE,Óscar Brea,resuelto
+TK-2024-0541,2024-12-12,,Grupo Industrial Mares,baja,otro,Solicitud de inventario de activos TI del departamento,Iván Reyes,pendiente
+TK-2024-0542,2024-12-12,2024-12-15,Autoridad Portuaria de Marbravo,media,software,API de consulta de horarios de buques devuelve datos vacíos,Marta Lois,resuelto
+TK-2024-0543,2024-12-13,2024-12-16,MercadoPlus Retail S.L.,media,hardware,Terminal de cobro con lector de tarjetas averiado,Diego Vidal,resuelto
+TK-2024-0544,2024-12-14,,Hospital Central del Noroeste,alta,red,Red de quirófanos sin conectividad tras obra de ampliación,Nuria Campos,escalado
+TK-2024-0545,2024-12-15,2024-12-18,InnoFlex Holdings S.A.,baja,software,Plugin de navegador para acceso a intranet no funciona,Óscar Brea,resuelto
+TK-2024-0546,2024-12-16,2024-12-19,OceanHarvest Foods S.A.,media,hardware,Antena RFID de cámara de congelación con lectura intermitente,Iván Reyes,resuelto
+TK-2024-0547,2024-12-17,,AutoNorte Fabricación S.A.,media,software,Error de compilación en despliegue de microservicios,Marta Lois,pendiente
+TK-2024-0548,2024-12-18,2024-12-21,Cervecera Dorada S.A.,baja,red,Switch no gestionado de oficina de marketing sin PoE,Diego Vidal,resuelto
+TK-2024-0549,2024-12-20,2024-12-23,AgroCampo S.A.,media,otro,Actualización de política de copias de seguridad,Nuria Campos,resuelto
+TK-2024-0550,2024-12-22,,Ayuntamiento de Portobello,media,software,Error en generación de recibos de IBI del cuarto trimestre,Óscar Brea,pendiente
