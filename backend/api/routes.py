@@ -9,6 +9,9 @@ Tres endpoints:
 
 import os
 import logging
+import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
@@ -129,40 +132,77 @@ async def get_task_status(task_id: str):
 async def search_documents(
     q: str = Query(..., min_length=1, description="Texto de búsqueda"),
     top_k: int = Query(5, ge=1, le=20, description="Número de resultados"),
-    type: list[str] = Query(None, description="Filtrar por extensión (ej. .pdf, .csv)"),
-    file: str = Query(None, description="Filtrar por un archivo específico"),
-    category: list[str] = Query(None, description="Filtrar por categoría (ej. RRHH, Finanzas)"),
+    type: list[str] = Query(None, description="Filtrar por tipo de documento"),
 ):
     """
-    Búsqueda semántica sobre los documentos indexados, con filtros opcionales.
+    Búsqueda semántica sobre los documentos indexados.
 
-    Vectoriza la query, busca en Qdrant por similitud coseno,
-    y devuelve los top_k chunks más relevantes.
-
-    Returns:
-        Lista de resultados con: text, score, source.
+    Devuelve respuesta en el formato esperado por el frontend Angular:
+    SearchResponse { results, total, page, pageSize, durationMs, queryEchoed }
     """
     try:
-        # Construir el diccionario de filtros
+        start_time = time.time()
+
+        # Construir filtros
         filters = {}
         if type:
             filters["extension"] = type
-        if file:
-            filters["source"] = file
-        if category:
-            filters["category"] = category
 
         vdb = VectorDBService()
-        results = vdb.search(
-            query=q, 
-            top_k=top_k,
-            filters=filters
-        )
+        raw_results = vdb.search(query=q, top_k=top_k)
+
+        # Transformar al formato SearchResponse del frontend
+        results = []
+        for r in raw_results:
+            source = r.get("source", "unknown")
+            ext = Path(source).suffix.lower().lstrip(".")  # "pdf", "csv", etc.
+
+            # Mapear extensión a DocumentType del frontend
+            type_map = {
+                "pdf": "pdf",
+                "txt": "pdf",        # El frontend no tiene tipo "txt"
+                "csv": "invoice",    # Mapeo razonable para datos tabulares
+                "xlsx": "invoice",
+            }
+            doc_type = type_map.get(ext, "pdf")
+
+            # Construir DocumentMetadata
+            now_iso = datetime.now(timezone.utc).isoformat()
+            document = {
+                "id": str(uuid.uuid4()),
+                "title": Path(source).stem.replace("_", " ").title(),
+                "type": doc_type,
+                "source": source,
+                "author": None,
+                "createdAt": now_iso,
+                "updatedAt": now_iso,
+                "tags": [ext.upper()] if ext else [],
+                "sizeBytes": None,
+            }
+
+            # Construir HighlightedFragment
+            text = r.get("text", "")
+            fragment = {
+                "text": text,
+                "highlights": _find_highlights(text, q),
+                "pageNumber": r.get("page"),
+            }
+
+            results.append({
+                "document": document,
+                "fragment": fragment,
+                "relevanceScore": r.get("score", 0.0),
+            })
+
+        duration_ms = int((time.time() - start_time) * 1000)
 
         return {
-            "query": q,
-            "top_k": top_k,
             "results": results,
+            "total": len(results),
+            "page": 1,
+            "pageSize": top_k,
+            "durationMs": duration_ms,
+            "queryEchoed": q,
         }
 
     except Exception as e:
@@ -171,3 +211,23 @@ async def search_documents(
             status_code=500,
             detail=f"Error realizando la búsqueda: {e}"
         )
+
+
+def _find_highlights(text: str, query: str) -> list[dict]:
+    """
+    Busca ocurrencias de la query en el texto para resaltado.
+    Devuelve lista de {start, end} con las posiciones.
+    """
+    highlights = []
+    query_lower = query.lower()
+    text_lower = text.lower()
+    start = 0
+
+    while True:
+        pos = text_lower.find(query_lower, start)
+        if pos == -1:
+            break
+        highlights.append({"start": pos, "end": pos + len(query)})
+        start = pos + 1
+
+    return highlights
