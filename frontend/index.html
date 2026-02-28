@@ -227,6 +227,77 @@
       color: var(--text);
     }
 
+    /* Filter Popover specific */
+    .filter-popover {
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 240px;
+      gap: 16px;
+      align-items: stretch;
+      text-align: left;
+    }
+
+    .filter-popover.popover-base {
+      animation: popover-center-in .15s ease;
+    }
+
+    @keyframes popover-center-in {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0)
+      }
+    }
+
+    .filter-section-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(20, 33, 61, .4);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(20, 33, 61, .08);
+      display: block;
+    }
+
+    .filter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .filter-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .85rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+      transition: background .15s;
+      user-select: none;
+    }
+
+    .filter-label:hover {
+      background: rgba(20, 33, 61, .06);
+    }
+
+    .filter-cb {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+      margin: 0;
+      cursor: pointer;
+    }
+
     /* File manager trigger */
     .fm-trigger {
       display: inline-flex;
@@ -237,33 +308,20 @@
       color: #fff;
       border: none;
       border-radius: 18px 4px 18px 4px;
-      font-family: 'Inter', 'Roboto', sans-serif;
-      font-size: .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .15s, box-shadow .15s;
-      box-shadow: 0 2px 10px rgba(20, 33, 61, .25);
-    }
-
-    .fm-trigger:hover {
-      background: #1e2f55;
-      box-shadow: 0 4px 16px rgba(20, 33, 61, .3);
     }
 
     .fm-trigger--open .fm-chevron {
       transform: rotate(180deg);
     }
 
-    .fm-chevron {
+    .fm-chevron,
+    .filter-chevron {
       transition: transform .2s ease;
     }
 
-    /* FM Popover */
-    .fm-popover {
+    /* FM Popover & Filter Popover Shared Base */
+    .popover-base {
       position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      min-width: 260px;
       background: var(--surface);
       border-radius: 16px 4px 16px 4px;
       border: 1.5px solid rgba(20, 33, 61, .12);
@@ -271,9 +329,16 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
       animation: popover-in .15s ease;
       z-index: 200;
+    }
+
+    /* FM Popover */
+    .fm-popover {
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 260px;
+      gap: 6px;
     }
 
     @keyframes popover-in {
@@ -1076,16 +1141,19 @@
       background: rgba(20, 33, 61, 0.85);
       backdrop-filter: blur(8px);
       z-index: 9999;
-      display: none; /* hidden by default */
+      display: none;
+      /* hidden by default */
       flex-direction: column;
       align-items: center;
       justify-content: center;
       color: white;
       transition: all 0.2s ease;
     }
+
     .drag-overlay.active {
       display: flex;
     }
+
     .drag-box {
       border: 3px dashed rgba(255, 255, 255, 0.4);
       border-radius: 24px;
@@ -1095,21 +1163,25 @@
       align-items: center;
       gap: 16px;
       background: rgba(255, 255, 255, 0.05);
-      pointer-events: none; /* Let drag events pass through to the overlay */
+      pointer-events: none;
+      /* Let drag events pass through to the overlay */
       max-width: 90%;
       text-align: center;
     }
+
     .drag-icon {
       color: #fca311;
       width: 64px;
       height: 64px;
       margin-bottom: 8px;
     }
+
     .drag-title {
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0;
     }
+
     .drag-subtitle {
       font-size: 1rem;
       color: rgba(255, 255, 255, 0.6);
@@ -1124,8 +1196,10 @@
   <div id="dragOverlay" class="drag-overlay">
     <div class="drag-box">
       <svg class="drag-icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+        <path
+          d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+        <path
+          d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
       </svg>
       <h2 class="drag-title">Suelta el archivo aquí</h2>
       <p class="drag-subtitle">Se subirá y se indexará automáticamente</p>
@@ -1177,7 +1251,7 @@
         </svg>
       </button>
 
-      <div class="fm-popover" id="fmPopover" style="display:none">
+      <div class="fm-popover popover-base" id="fmPopover" style="display:none">
         <span class="fm-section-label">Directorio raíz</span>
         <div class="fm-dir-row">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#fca311" class="fm-dir-icon"
@@ -1268,14 +1342,15 @@
           </svg>
           <span>Filtros</span>
           <span id="filterCountBadge" class="filter-badge" style="display:none;">0</span>
-          <svg class="fm-chevron" id="filterChevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+          <svg class="filter-chevron" id="filterChevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
             fill="currentColor" viewBox="0 0 16 16">
             <path fill-rule="evenodd"
               d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
           </svg>
         </button>
 
-        <div id="filterMenu" class="filter-popover" style="display:none;" onclick="event.stopPropagation()">
+        <div id="filterMenu" class="filter-popover popover-base" style="display:none;"
+          onclick="event.stopPropagation()">
 
           <div>
             <div class="filter-section-title">Por Categoría</div>
@@ -1779,7 +1854,7 @@
     window.addEventListener('dragenter', (e) => {
       e.preventDefault();
       // Solo activamos D&D si ya hay un rootDir configurado
-      if (!rootDirPath) return; 
+      if (!rootDirPath) return;
       dragCounter++;
       $('dragOverlay').classList.add('active');
     });
@@ -1800,7 +1875,7 @@
     window.addEventListener('drop', async (e) => {
       e.preventDefault();
       if (!rootDirPath) return;
-      
+
       dragCounter = 0;
       $('dragOverlay').classList.remove('active');
 
@@ -1816,20 +1891,20 @@
       try {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const r = await fetch('/api/upload', {
           method: 'POST',
           body: formData
         });
-        
+
         if (!r.ok) {
           const err = await r.json();
           throw new Error(err.detail || 'Error en la subida');
         }
-        
+
         const data = await r.json();
         showToast(`✓ ${esc(file.name)} subido. Indexando en segundo plano...`, 4000);
-        
+
         // Opcional: podríamos hacer polling al /api/status/{task_id} para avisar 
         // cuando termine, pero por ahora un toast de éxito es suficiente.
       } catch (e) {
