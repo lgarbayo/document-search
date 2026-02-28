@@ -309,11 +309,17 @@ async def search_documents(
         # ── Agrupar resultados por documento (source) ──
         from collections import OrderedDict
         grouped: dict[str, dict] = OrderedDict()
+        
+        # Umbral mínimo de relevancia para descartar ruido
+        MIN_SCORE_THRESHOLD = 0.3
 
         for r in raw_results:
             source = r.get("source", "unknown")
             text = r.get("text", "")
             score = r.get("score", 0.0)
+            
+            if score < MIN_SCORE_THRESHOLD:
+                continue
 
             fragment = {
                 "text": text,
