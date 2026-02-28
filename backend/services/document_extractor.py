@@ -89,6 +89,34 @@ def extract_document_content(file_path: str) -> tuple[str, dict]:
         "category": category,
     }
     
+    # Extraer metadatos técnicos avanzados con ExifTool
+    try:
+        import subprocess
+        import json
+        result = subprocess.run(
+            ["exiftool", "-j", str(path)],
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        if result.stdout:
+            parsed_exif = json.loads(result.stdout)
+            if isinstance(parsed_exif, list) and len(parsed_exif) > 0:
+                exif_data = parsed_exif[0]
+                for k in ["Directory", "SourceFile", "FileName", "ExifToolVersion"]:
+                    exif_data.pop(k, None)
+                metadata["exif_metadata"] = exif_data
+                
+                # Intentar extraer el año (YYYY) de CreateDate o FileModifyDate para filtrado numérico en Qdrant
+                date_str = exif_data.get("CreateDate") or exif_data.get("FileModifyDate")
+                if date_str and isinstance(date_str, str) and len(date_str) >= 4:
+                    try:
+                        metadata["exif_year"] = int(date_str[:4])
+                    except ValueError:
+                        pass
+    except Exception as e:
+        logger.warning(f"No se pudo extraer metadata ExifTool para {file_path}: {e}")
+    
     # Combinar con los metadatos específicos del extractor (ej. autor de PDF)
     if extra_meta:
         metadata.update(extra_meta)

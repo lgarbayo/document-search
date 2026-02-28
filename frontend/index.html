@@ -247,8 +247,8 @@
     }
 
     .filter-btn:hover {
-      background: rgba(255, 255, 255, .9);
-      border-color: rgba(20, 33, 61, .25);
+      background: rgba(20, 33, 61, 0.08);
+      border-color: rgba(20, 33, 61, .3);
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(20, 33, 61, .1);
     }
@@ -257,6 +257,12 @@
       background: var(--text);
       color: #fff;
       border-color: var(--text);
+    }
+
+    .filter-btn--active:hover {
+      background: #0a1128;
+      color: #fff;
+      border-color: #0a1128;
     }
 
     /* Filter Popover specific */
@@ -1477,6 +1483,30 @@
             </div>
           </div>
 
+          <!-- Advanced Filters (ExifTool) -->
+          <div>
+            <div class="filter-section-title">Metadatos Técnicos</div>
+
+            <input type="text" id="filterAuthor" placeholder="Autor del documento" class="filter-input w-full"
+              style="margin-bottom:8px; width: 100%" onchange="updateFilterBadge()">
+
+            <div class="filter-grid" style="display:flex;gap:8px;margin-bottom:8px;">
+              <input type="number" id="filterMinSize" placeholder="Mín (MB)" class="filter-input" style="flex: 1;"
+                min="0" onchange="updateFilterBadge()">
+              <span style="color:var(--text);align-self:center;font-size:0.8rem;opacity:0.6;">-</span>
+              <input type="number" id="filterMaxSize" placeholder="Máx (MB)" class="filter-input" style="flex: 1;"
+                min="0" onchange="updateFilterBadge()">
+            </div>
+
+            <div class="filter-grid" style="display:flex;gap:8px;margin-bottom:8px;">
+              <input type="number" id="filterMinYear" placeholder="Año Mín" class="filter-input" style="flex: 1;"
+                min="1900" max="2100" onchange="updateFilterBadge()">
+              <span style="color:var(--text);align-self:center;font-size:0.8rem;opacity:0.6;">-</span>
+              <input type="number" id="filterMaxYear" placeholder="Año Máx" class="filter-input" style="flex: 1;"
+                min="1900" max="2100" onchange="updateFilterBadge()">
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1846,19 +1876,24 @@
         }
       }
 
-      function toggleFilter(checkbox) {
-        const t = checkbox.value;
-        const i = activeFilters.indexOf(t);
-        if (checkbox.checked && i === -1) {
-          activeFilters.push(t);
-        } else if (!checkbox.checked && i > -1) {
-          activeFilters.splice(i, 1);
-        }
+      function updateFilterBadge() {
+        let count = activeFilters.length;
+        const author = $('filterAuthor').value.trim();
+        const minSize = $('filterMinSize').value;
+        const maxSize = $('filterMaxSize').value;
+        const minYear = $('filterMinYear').value;
+        const maxYear = $('filterMaxYear').value;
+
+        if (author) count++;
+        if (minSize) count++;
+        if (maxSize) count++;
+        if (minYear) count++;
+        if (maxYear) count++;
 
         const badge = $('filterCountBadge');
-        if (activeFilters.length > 0) {
+        if (count > 0) {
           badge.style.display = 'inline-block';
-          badge.textContent = activeFilters.length;
+          badge.textContent = count;
           $('filterBtn').classList.add('filter-btn--active');
         } else {
           badge.style.display = 'none';
@@ -1867,6 +1902,17 @@
 
         // Re-ejecutar búsqueda automáticamente si ya hay una query activa
         if (currentQuery) performSearch(currentQuery);
+      }
+
+      function toggleFilter(checkbox) {
+        const t = checkbox.value;
+        const i = activeFilters.indexOf(t);
+        if (checkbox.checked && i === -1) {
+          activeFilters.push(t);
+        } else if (!checkbox.checked && i > -1) {
+          activeFilters.splice(i, 1);
+        }
+        updateFilterBadge();
       }
 
       /* ── History ───────────────────────────────────────────── */
@@ -1913,6 +1959,19 @@
         try {
           const p = new URLSearchParams({ q, top_k: 1000, expand: currentMode === 'descriptive' });
           activeFilters.forEach(t => p.append('type', t));
+
+          const minSize = $('filterMinSize').value;
+          const maxSize = $('filterMaxSize').value;
+          const author = $('filterAuthor').value.trim();
+          const minYear = $('filterMinYear').value;
+          const maxYear = $('filterMaxYear').value;
+
+          if (minSize) p.append('min_size', Math.round(minSize * 1024 * 1024));
+          if (maxSize) p.append('max_size', Math.round(maxSize * 1024 * 1024));
+          if (author) p.append('author', author);
+          if (minYear) p.append('min_year', minYear);
+          if (maxYear) p.append('max_year', maxYear);
+
           const r = await fetch(`/api/search?${p}`);
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const data = await r.json();

@@ -135,6 +135,11 @@ async def search_documents(
     top_k: int = Query(30, ge=1, le=1000, description="Número de resultados"),
     type: list[str] = Query(None, description="Filtrar por tipo de documento"),
     expand: bool = Query(False, description="Activar expansión de consulta con LLM"),
+    min_size: int = Query(None, ge=0, description="Tamaño mínimo en bytes"),
+    max_size: int = Query(None, ge=0, description="Tamaño máximo en bytes"),
+    author: str = Query(None, description="Filtrar por autor del documento"),
+    min_year: int = Query(None, ge=1900, description="Año mínimo de creación/modificación"),
+    max_year: int = Query(None, ge=1900, description="Año máximo de creación/modificación"),
 ):
     """
     Búsqueda semántica sobre los documentos indexados.
@@ -181,6 +186,27 @@ async def search_documents(
                 filters["extension"] = list(set(extensions))
             if categories:
                 filters["category"] = list(set(categories))
+                
+        exact_filters = {}
+        if author:
+            # MatchThext is helpful, but we can do a simplified case insensitive exact or array match
+            # For exact filter using MatchValue, it works better if the UI sends the exact string or we just pass the raw input.
+            exact_filters["author"] = author
+
+        range_filters = {}
+        if min_size is not None or max_size is not None:
+            range_filters["file_size_bytes"] = {}
+            if min_size is not None:
+                range_filters["file_size_bytes"]["gte"] = min_size
+            if max_size is not None:
+                range_filters["file_size_bytes"]["lte"] = max_size
+                
+        if min_year is not None or max_year is not None:
+            range_filters["exif_year"] = {}
+            if min_year is not None:
+                range_filters["exif_year"]["gte"] = min_year
+            if max_year is not None:
+                range_filters["exif_year"]["lte"] = max_year
 
         # Normalizar la query
         q_normalized = normalize_query(q)
@@ -209,7 +235,13 @@ async def search_documents(
         use_expansion = expand
 
         # Búsqueda inicial con query normalizada
-        raw_results = await vdb.search(query=q_normalized, top_k=top_k, filters=filters if filters else None)
+        raw_results = await vdb.search(
+            query=q_normalized, 
+            top_k=top_k, 
+            filters=filters if filters else None, 
+            range_filters=range_filters if range_filters else None,
+            exact_filters=exact_filters if exact_filters else None
+        )
 
         # Activar extracción automáticamente si no hay resultados
         if not raw_results and not use_expansion:
@@ -227,7 +259,9 @@ async def search_documents(
                 keyword_results = await vdb.search(
                     query=extracted_keywords,
                     top_k=top_k,
-                    filters=filters if filters else None
+                    filters=filters if filters else None,
+                    range_filters=range_filters if range_filters else None,
+                    exact_filters=exact_filters if exact_filters else None
                 )
 
                 # --- FIXED MERGE ---
@@ -412,28 +446,8 @@ async def get_document_detail(source: str = Query(..., description="Ruta del arc
         doc_type = type_map.get(ext_clean, ext_clean)
         first_chunk = chunks[0] if chunks else {}
 
-        # Ejecutar ExifTool para obtener metadatos reales del archivo
-        exif_data = None
-        if file_path:
-            try:
-                import subprocess
-                import json
-                import asyncio
-                # -j flag devuelve salida JSON
-                result = await asyncio.to_thread(
-                    subprocess.run,
-                    ["exiftool", "-j", str(file_path)],
-                    capture_output=True,
-                    text=True,
-                    check=False
-                )
-                
-                if result.stdout:
-                    parsed_exif = json.loads(result.stdout)
-                    if isinstance(parsed_exif, list) and len(parsed_exif) > 0:
-                        exif_data = parsed_exif[0]
-            except Exception as e:
-                logger.error(f"Error parseando metadatos ExifTool para {source}: {e}")
+        # Extraer metadatos ExifTool almacenados en Ingesta
+        exif_data = first_chunk.get("exif_metadata")
 
         return {
             "source": source,

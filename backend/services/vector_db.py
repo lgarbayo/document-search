@@ -30,6 +30,7 @@ from qdrant_client.models import (
     FieldCondition,
     MatchValue,
     MatchText,
+    Range,
 )
 
 from core.config import settings
@@ -206,6 +207,8 @@ class VectorDBService:
         query: str, 
         top_k: int = 5,
         filters: dict = None,
+        range_filters: dict = None,
+        exact_filters: dict = None,
     ) -> list[dict]:
         """
         Busca los chunks más similares a la query, con filtros dinámicos.
@@ -214,6 +217,7 @@ class VectorDBService:
             query: Texto de búsqueda.
             top_k: Número de resultados a devolver.
             filters: Diccionario de metadatos exactos a filtrar (ej. {"category": "RRHH"}).
+            range_filters: Diccionario de metadatos de rango a filtrar (ej. {"file_size_bytes": {"gte": 1000, "lte": 5000}}).
 
         Returns:
             Lista de dicts con: text, score, source, y otros metadatos.
@@ -228,6 +232,7 @@ class VectorDBService:
 
         # Construir filtros opcionales dinámicamente
         query_filter = None
+        must_conditions = []
         
         if filters:
             # En vez de "must" (AND) estricto entre extensiones y categorías,
@@ -246,7 +251,32 @@ class VectorDBService:
                     should_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
                     
             if should_conditions:
-                query_filter = Filter(should=should_conditions)
+                must_conditions.append(Filter(should=should_conditions))
+                
+        if exact_filters:
+            for key, value in exact_filters.items():
+                if value is not None:
+                    # MatchValue is case-sensitive exact match. For Author it might be better to use MatchText or handle it case-insensitively if needed, but since Qdrant handles case-sensitive MatchValue by default we will stick to MatchText if it's a full-text index, or MatchValue. Since 'author' is not explicitly full-text indexed, an exact MatchValue or lowercase search is best.
+                    # We will use MatchValue for exact match, as we want complete names "John Doe"
+                    must_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
+                
+        if range_filters:
+            for key, r_val in range_filters.items():
+                gte_val = r_val.get("gte")
+                lte_val = r_val.get("lte")
+                if gte_val is not None or lte_val is not None:
+                    must_conditions.append(
+                        FieldCondition(
+                            key=key,
+                            range=Range(
+                                gte=float(gte_val) if gte_val is not None else None,
+                                lte=float(lte_val) if lte_val is not None else None
+                            )
+                        )
+                    )
+                    
+        if must_conditions:
+             query_filter = Filter(must=must_conditions)
 
         # Buscar en Qdrant (I/O-Bound síncrono, lo mandamos a un thread)
         results = await asyncio.to_thread(
@@ -269,6 +299,7 @@ class VectorDBService:
                 "extension": point.payload.get("extension", ""),
                 "page": point.payload.get("page", None),
                 "chunk_index": point.payload.get("chunk_index", None),
+                "exif_metadata": point.payload.get("exif_metadata", None),
             })
 
         return formatted
@@ -301,6 +332,12 @@ class VectorDBService:
                 "extension": point.payload.get("extension", ""),
                 "page": point.payload.get("page", None),
                 "chunk_index": point.payload.get("chunk_index", None),
+                "author": point.payload.get("author", None),
+                "creator": point.payload.get("creator", None),
+                "subject": point.payload.get("subject", None),
+                "keywords": point.payload.get("keywords", None),
+                "producer": point.payload.get("producer", None),
+                "exif_metadata": point.payload.get("exif_metadata", None),
             })
 
         # Ordenar por chunk_index para reconstruir el documento en orden
