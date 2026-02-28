@@ -1139,14 +1139,14 @@
       background: rgba(20, 33, 61, .06);
     }
 
-    .dd-meta {
+    /* .dd-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       padding: 16px 28px;
       border-bottom: 1px solid rgba(20, 33, 61, .06);
       flex-shrink: 0;
-    }
+    }*/
 
     .dd-badge {
       display: inline-flex;
@@ -1986,7 +1986,6 @@
       async function openDocDetail(source) {
         $('ddModal').style.display = 'flex';
         $('ddTitle').textContent = 'Cargando…';
-        $('ddMeta').innerHTML = '';
         $('ddExif').style.display = 'none';
         $('ddExif').innerHTML = '';
         $('ddBody').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
@@ -1999,24 +1998,6 @@
 
           $('ddTitle').textContent = doc.title;
 
-          // Metadata badges
-          const extIcons = { '.pdf': '📄', '.txt': '📝', '.csv': '📊', '.xlsx': '📊', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️' };
-          let metaHtml = '';
-          metaHtml += `<span class="dd-badge cat">${esc(doc.category)}</span>`;
-          metaHtml += `<span class="dd-badge ext">${doc.extension.toUpperCase().replace('.', '')}</span>`;
-          metaHtml += `<span class="dd-badge info">${doc.wordCount.toLocaleString()} palabras</span>`;
-          metaHtml += `<span class="dd-badge info">${doc.totalChunks} chunks</span>`;
-          if (doc.fileSize) metaHtml += `<span class="dd-badge info">${formatSize(doc.fileSize)}</span>`;
-
-          // Extended rich metadata
-          if (doc.author) metaHtml += `<span class="dd-badge">Autor: ${esc(doc.author)}</span>`;
-          if (doc.creator) metaHtml += `<span class="dd-badge">Empresa: ${esc(doc.creator)}</span>`;
-          if (doc.subject) metaHtml += `<span class="dd-badge">Asunto: ${esc(doc.subject)}</span>`;
-          if (doc.producer) metaHtml += `<span class="dd-badge">Productor: ${esc(doc.producer)}</span>`;
-          if (doc.keywords) metaHtml += `<span class="dd-badge">Keywords: ${esc(doc.keywords)}</span>`;
-
-          $('ddMeta').innerHTML = metaHtml;
-
           // Render documento original embebido o texto crudo
           const url = `/api/document/view?source=${encodeURIComponent(source)}`;
           const ext = (doc.extension || '').toLowerCase();
@@ -2024,7 +2005,7 @@
           const isPdf = /\.pdf$/i.test(ext);
 
           if (isImg) {
-            $('ddBody').innerHTML = `<div style="text-align:center;padding:20px;background:#f5f5f5;height:100%;min-height:50vh;display:flex;align-items:center;justify-content:center;"><img src="${url}" style="max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>`;
+            $('ddBody').innerHTML = `<div style="text-align:center;padding:0px;background:#f5f5f5;height:100%;min-height:50vh;display:flex;align-items:center;justify-content:center;"><img src="${url}" style="max-width:100%;max-height:50vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>`;
             $('ddBody').style.padding = '0';
           } else if (isPdf) {
             $('ddBody').innerHTML = `<iframe src="${url}" style="width:100%;height:100%;min-height:50vh;border:none;border-radius:8px;background:#f5f5f5;"></iframe>`;
