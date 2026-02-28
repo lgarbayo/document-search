@@ -163,6 +163,9 @@ async def search_documents(
                 "txt": "pdf",        # El frontend no tiene tipo "txt"
                 "csv": "invoice",    # Mapeo razonable para datos tabulares
                 "xlsx": "invoice",
+                "png": "pdf",        # Imágenes procesadas por OCR
+                "jpg": "pdf",
+                "jpeg": "pdf",
             }
             doc_type = type_map.get(ext, "pdf")
 

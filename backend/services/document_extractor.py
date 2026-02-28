@@ -23,6 +23,7 @@ import logging
 
 try:
     from pdf2image import convert_from_path
+    from PIL import Image
     import pytesseract
     OCR_AVAILABLE = True
 except ImportError:
@@ -31,7 +32,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 # Extensiones soportadas
-SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".csv", ".xlsx"}
+SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".csv", ".xlsx", ".png", ".jpg", ".jpeg"}
 
 
 def extract_document_content(file_path: str) -> tuple[str, dict]:
@@ -68,6 +69,9 @@ def extract_document_content(file_path: str) -> tuple[str, dict]:
         ".txt": _extract_txt,
         ".csv": _extract_csv,
         ".xlsx": _extract_xlsx,
+        ".png": _extract_img,
+        ".jpg": _extract_img,
+        ".jpeg": _extract_img,
     }
 
     text = extractors[ext](file_path)
@@ -155,6 +159,20 @@ def _extract_pdf(file_path: str) -> str:
             logger.warning(f"Fallo en el OCR fallback para {file_path}: {e}")
 
     return extracted_text
+
+
+def _extract_img(file_path: str) -> str:
+    """Extrae texto de una imagen nativa (PNG, JPG) usando Tesseract OCR."""
+    if not OCR_AVAILABLE:
+        raise ValueError("Tesseract OCR no está instalado. No se pueden procesar imágenes puras.")
+    
+    try:
+        logger.info(f"Procesando imagen con OCR: {file_path}")
+        img = Image.open(file_path)
+        extracted_text = pytesseract.image_to_string(img, lang="spa+eng")
+        return extracted_text
+    except Exception as e:
+        raise ValueError(f"Fallo al realizar OCR sobre la imagen: {e}")
 
 
 def _extract_txt(file_path: str) -> str:
