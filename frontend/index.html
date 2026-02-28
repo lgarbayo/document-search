@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>Meiga Search</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --text:#14213d; --accent:#fca311; --surface:#ffffff; --bg:#e5e5e5; }
+    *{ box-sizing:border-box; }
+    body{ font-family:'Inter','Roboto',sans-serif; background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; margin:0; }
+
+    /* Utility shims (replaces Tailwind CDN) */
+    .min-h-screen{ min-height:100vh; }
+    .flex{ display:flex; }
+    .flex-col{ flex-direction:column; }
+    .flex-wrap{ flex-wrap:wrap; }
+    .flex-shrink-0{ flex-shrink:0; }
+    .flex-1{ flex:1; }
+    .items-center{ align-items:center; }
+    .items-start{ align-items:flex-start; }
+    .justify-center{ justify-content:center; }
+    .justify-between{ justify-content:space-between; }
+    .w-full{ width:100%; }
+    .min-w-0{ min-width:0; }
+    .px-4{ padding-left:1rem; padding-right:1rem; }
+    .pb-12{ padding-bottom:3rem; }
+    .pl-2{ padding-left:0.5rem; }
+    .py-12{ padding-top:3rem; padding-bottom:3rem; }
+    .gap-0\.5{ gap:0.125rem; }
+    .gap-1{ gap:0.25rem; }
+    .gap-2{ gap:0.5rem; }
+    .gap-3{ gap:0.75rem; }
+    .gap-4{ gap:1rem; }
+    .gap-6{ gap:1.5rem; }
+    .gap-10{ gap:2.5rem; }
+    .mb-2{ margin-bottom:0.5rem; }
+    .mb-4{ margin-bottom:1rem; }
+    .mt-7{ margin-top:1.75rem; }
+    .m-0{ margin:0; }
+    .p-0{ padding:0; }
+    .text-center{ text-align:center; }
+
+    /* Search bar */
+    .search-bar-wrapper{ display:flex; align-items:center; width:100%; background:var(--surface); border:1.5px solid var(--text); border-radius:20px 4px 20px 4px; padding:0 12px 0 22px; transition:box-shadow .2s ease; }
+    .search-bar-wrapper:focus-within{ box-shadow:0 0 0 2.5px var(--accent); }
+    #searchInput{ flex:1; min-width:0; border:none; outline:none; background:transparent; font-family:'Inter','Roboto',sans-serif; font-size:1rem; color:var(--text); padding:18px 12px 18px 0; }
+    #searchInput::placeholder{ font-family:'Times New Roman',Georgia,serif; font-style:italic; color:#a8b4c8; }
+    #searchInput:disabled{ opacity:.6; cursor:not-allowed; }
+
+    /* Mode toggle */
+    .mode-toggle{ display:inline-flex; align-items:center; background:rgba(20,33,61,.07); border-radius:20px 4px 20px 4px; padding:3px; gap:2px; }
+    .mode-btn{ display:inline-flex; align-items:center; gap:6px; padding:7px 18px; border:none; border-radius:16px 3px 16px 3px; background:transparent; color:rgba(20,33,61,.55); cursor:pointer; font-family:'Inter','Roboto',sans-serif; font-size:.82rem; font-weight:500; transition:background .15s, color .15s; white-space:nowrap; }
+    .mode-btn.active{ background:var(--accent); color:var(--text); font-weight:700; box-shadow:0 1px 6px rgba(252,163,17,.35); }
+    .mode-btn:hover:not(.active){ background:rgba(20,33,61,.1); color:var(--text); }
+
+    /* Filter chips */
+    .chip{ display:inline-flex; align-items:center; gap:5px; padding:7px 16px; border:1.5px solid rgba(20,33,61,.3); border-radius:20px; background:var(--surface); color:var(--text); font-family:'Inter','Roboto',sans-serif; font-size:.8rem; font-weight:500; cursor:pointer; transition:background .15s, color .15s, border-color .15s, box-shadow .15s; }
+    .chip.chip--active{ background:var(--accent); border-color:var(--accent); color:#000; box-shadow:0 2px 6px rgba(252,163,17,.35); }
+    .chip:hover:not(.chip--active){ background:rgba(20,33,61,.05); border-color:var(--text); }
+
+    /* File manager trigger */
+    .fm-trigger{ display:inline-flex; align-items:center; gap:7px; padding:8px 16px 8px 12px; background:var(--text); color:#fff; border:none; border-radius:18px 4px 18px 4px; font-family:'Inter','Roboto',sans-serif; font-size:.8rem; font-weight:600; cursor:pointer; transition:background .15s, box-shadow .15s; box-shadow:0 2px 10px rgba(20,33,61,.25); }
+    .fm-trigger:hover{ background:#1e2f55; box-shadow:0 4px 16px rgba(20,33,61,.3); }
+    .fm-trigger--open .fm-chevron{ transform:rotate(180deg); }
+    .fm-chevron{ transition:transform .2s ease; }
+
+    /* FM Popover */
+    .fm-popover{ position:absolute; top:calc(100% + 8px); right:0; min-width:260px; background:var(--surface); border-radius:16px 4px 16px 4px; border:1.5px solid rgba(20,33,61,.12); box-shadow:0 8px 32px rgba(20,33,61,.16); padding:16px; display:flex; flex-direction:column; gap:6px; animation:popover-in .15s ease; z-index:200; }
+    @keyframes popover-in{ from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .fm-section-label{ font-size:.68rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:rgba(20,33,61,.4); padding:0 4px; }
+    .fm-dir-row{ display:flex; align-items:center; gap:8px; padding:6px 8px; background:rgba(20,33,61,.04); border-radius:8px 2px 8px 2px; }
+    .fm-dir-icon{ color:var(--accent); flex-shrink:0; }
+    .fm-dir-name{ font-size:.82rem; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+    .fm-dir-name--unset{ font-weight:400; color:rgba(20,33,61,.4); font-style:italic; }
+    .fm-divider{ height:1px; background:rgba(20,33,61,.08); margin:4px 0; }
+    .fm-action-btn{ display:flex; align-items:center; gap:10px; padding:10px 12px; background:none; border:none; border-radius:10px 2px 10px 2px; color:var(--text); font-family:'Inter','Roboto',sans-serif; font-size:.84rem; font-weight:500; cursor:pointer; text-align:left; width:100%; transition:background .12s; }
+    .fm-action-btn:hover:not(:disabled){ background:rgba(252,163,17,.1); }
+    .fm-action-btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .fm-action-btn.danger{ color:#dc3545; }
+    .fm-action-btn.danger:hover:not(:disabled){ background:rgba(220,53,69,.1); color:#dc3545; }
+    .fm-soon-badge{ flex:0!important; font-size:.65rem; font-weight:600; background:rgba(252,163,17,.15); color:rgba(20,33,61,.6); padding:2px 7px; border-radius:8px; white-space:nowrap; }
+    .fm-backdrop{ position:fixed; inset:0; z-index:199; }
+
+    /* Recent searches */
+    .recent-label{ font-family:'Inter','Roboto',sans-serif; font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:rgba(20,33,61,.45); }
+    .clear-all-btn{ background:none; border:none; font-size:.75rem; color:rgba(20,33,61,.45); cursor:pointer; padding:0; font-family:'Inter','Roboto',sans-serif; transition:color .12s; }
+    .clear-all-btn:hover{ color:var(--accent); }
+    .recent-item{ display:flex; align-items:center; gap:10px; padding:8px 14px; border-radius:12px 3px 12px 3px; border:1px solid rgba(20,33,61,.08); background:rgba(255,255,255,.7); cursor:pointer; transition:background .12s, border-color .12s; list-style:none; }
+    .recent-item:hover{ background:#fff; border-color:rgba(20,33,61,.18); }
+    .recent-item:hover .remove-btn{ opacity:1; }
+    .item-icon{ color:rgba(20,33,61,.35); flex-shrink:0; }
+    .item-text{ flex:1; font-size:.86rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .remove-btn{ background:none; border:none; padding:2px; color:rgba(20,33,61,.35); cursor:pointer; display:flex; align-items:center; opacity:0; transition:opacity .12s, color .12s; border-radius:50%; flex-shrink:0; }
+    .remove-btn:hover{ color:var(--text); }
+
+    /* Result card */
+    .result-card{ background:var(--surface); border:1.5px solid rgba(20,33,61,.12); border-radius:16px 4px 16px 4px; padding:18px 22px; cursor:pointer; outline:none; transition:box-shadow .15s, transform .12s; }
+    .result-card:hover,.result-card:focus-visible{ box-shadow:0 4px 18px rgba(0,0,0,.1); transform:translateY(-1px); }
+    .doc-type{ font-size:.65rem; font-weight:700; letter-spacing:.1em; color:var(--accent); }
+    .doc-title{ font-size:.95rem; font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .score-badge{ font-size:.75rem; font-weight:700; color:var(--accent); white-space:nowrap; flex-shrink:0; }
+    .fragment{ font-size:.85rem; color:#000; line-height:1.65; margin:0 0 14px; }
+    .fragment mark{ background:rgba(252,163,17,.25); color:inherit; border-radius:2px; padding:0 1px; }
+    .tag{ font-size:.65rem; padding:2px 8px; background:rgba(20,33,61,.07); border-radius:8px; color:var(--text); }
+
+    /* Root directory picker overlay */
+    .picker-backdrop{ position:fixed; inset:0; background:rgba(20,33,61,.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:24px; }
+    .picker-card{ background:#fff; border-radius:22px 6px 22px 6px; border:1.5px solid rgba(20,33,61,.14); max-width:420px; width:100%; padding:40px 36px 36px; display:flex; flex-direction:column; align-items:center; gap:16px; box-shadow:0 8px 40px rgba(20,33,61,.18); }
+    .picker-icon-wrap{ width:64px; height:64px; background:rgba(252,163,17,.1); border-radius:16px 4px 16px 4px; display:flex; align-items:center; justify-content:center; }
+    .picker-title{ font-family:'Inter','Roboto',sans-serif; font-size:1.25rem; font-weight:700; color:var(--text); margin:0; text-align:center; }
+    .picker-desc{ font-size:.88rem; color:rgba(20,33,61,.6); line-height:1.6; text-align:center; margin:0; }
+    .picker-btn{ display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:var(--text); color:#fff; border:none; border-radius:20px 4px 20px 4px; font-family:'Inter','Roboto',sans-serif; font-size:.9rem; font-weight:600; cursor:pointer; transition:background .15s, transform .1s; margin-top:8px; }
+    .picker-btn:hover:not(:disabled){ background:var(--accent); color:var(--text); }
+    .picker-btn:active:not(:disabled){ transform:scale(.97); }
+    .picker-btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .picker-hint{ display:flex; align-items:center; gap:6px; font-size:.78rem; color:rgba(20,33,61,.5); margin:0; text-align:center; }
+
+    /* Spinner */
+    .spinner{ width:36px; height:36px; border:3px solid rgba(252,163,17,.2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin{ to{transform:rotate(360deg)} }
+
+    /* Toast */
+    #toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--text); color:#fff; padding:10px 22px; border-radius:20px; font-size:.86rem; font-weight:500; white-space:nowrap; box-shadow:0 4px 20px rgba(20,33,61,.3); transition:transform .25s, opacity .25s; opacity:0; z-index:9999; }
+    #toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+
+    /* Error banner */
+    .error-state{ display:flex; align-items:center; gap:12px; padding:16px 20px; background:rgba(252,163,17,.08); border-radius:10px; border-left:3px solid var(--accent); }
+    .error-state p{ margin:0; font-size:.88rem; color:var(--text); }
+  </style>
+</head>
+<body>
+
+<!-- ROOT DIRECTORY PICKER OVERLAY -->
+<div class="picker-backdrop" id="pickerOverlay" style="display:none">
+  <div class="picker-card">
+    <div class="picker-icon-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#fca311" viewBox="0 0 16 16">
+        <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/>
+      </svg>
+    </div>
+    <h2 class="picker-title">Elige tu directorio raíz</h2>
+    <p class="picker-desc">Para comenzar, selecciona la carpeta que contiene tus documentos corporativos. Meiga Search usará esta ubicación como directorio principal de búsqueda.</p>
+    <button class="picker-btn" id="pickerBtn" onclick="doPickDirectory(false)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M.5 3.5A1.5 1.5 0 0 1 2 2h3.586l2 2H14a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 14 14H2a1.5 1.5 0 0 1-1.5-1.5v-10z"/>
+      </svg>
+      <span id="pickerBtnLabel">Elegir carpeta</span>
+    </button>
+    <p class="picker-hint" id="pickerHint" style="display:none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="#fca311" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+      Asegúrate de que el servidor tenga acceso a la carpeta seleccionada.
+    </p>
+  </div>
+</div>
+
+<!-- FILE MANAGER — fixed top-right -->
+<div style="position:fixed;top:16px;right:20px;z-index:300;">
+  <div style="position:relative;" id="fmContainer">
+    <button class="fm-trigger" id="fmTriggerBtn" onclick="toggleFmMenu()" aria-label="Gestionar archivos">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zm8.485 0H2.5a.5.5 0 0 0-.5.5V12.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V5.914a.5.5 0 0 0-.5-.5H7.264a.5.5 0 0 1-.447-.276L6.353 3.5H2.5z"/>
+      </svg>
+      <span>Gestionar archivos</span>
+      <svg id="fmChevron" class="fm-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+      </svg>
+    </button>
+
+    <div class="fm-popover" id="fmPopover" style="display:none">
+      <span class="fm-section-label">Directorio raíz</span>
+      <div class="fm-dir-row">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#fca311" class="fm-dir-icon" viewBox="0 0 16 16">
+          <path d="M.5 3.5A1.5 1.5 0 0 1 2 2h3.586l2 2H14a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 14 14H2a1.5 1.5 0 0 1-1.5-1.5v-10zM2 3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5H7.586L5.586 3H2z"/>
+        </svg>
+        <span class="fm-dir-name fm-dir-name--unset" id="fmDirName">Sin configurar</span>
+      </div>
+      <div class="fm-divider"></div>
+
+      <button class="fm-action-btn" onclick="doPickDirectory(true)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z"/>
+        </svg>
+        <span>Cambiar directorio raíz</span>
+      </button>
+
+      <button class="fm-action-btn danger" onclick="clearDatabase()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+        </svg>
+        <span>Limpiar base de datos</span>
+      </button>
+
+      <button class="fm-action-btn" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M4.406 1.342A5.53 5.53 0 0 1 8 0c2.69 0 4.923 2 5.166 4.579C14.758 4.804 16 6.137 16 7.773 16 9.569 14.502 11 12.687 11H10a.5.5 0 0 1 0-1h2.688C13.979 10 15 8.988 15 7.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 2.825 10.328 1 8 1a4.53 4.53 0 0 0-2.941 1.1c-.757.652-1.153 1.438-1.153 2.055v.448l-.445.049C2.064 4.805 1 5.952 1 7.318 1 8.785 2.23 10 3.781 10H6a.5.5 0 0 1 0 1H3.781C1.708 11 0 9.366 0 7.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383z"/>
+          <path fill-rule="evenodd" d="M7.646 4.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V14.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3z"/>
+        </svg>
+        <span>Añadir archivos sueltos</span>
+        <span class="fm-soon-badge">Próximamente</span>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="fm-backdrop" id="fmBackdrop" style="display:none" onclick="closeFmMenu()"></div>
+
+<!-- MAIN CONTENT -->
+<div id="shellLayout" class="min-h-screen flex flex-col items-center justify-center px-4 pb-12" style="padding-top:32px">
+
+  <div class="w-full flex flex-col items-center gap-4" style="max-width:720px">
+
+    <!-- App title -->
+    <div id="appTitle" class="flex flex-col items-center mb-4 gap-0.5">
+      <span style="font-family:'Inter','Roboto',sans-serif;font-size:3rem;font-weight:700;color:#14213d;letter-spacing:-0.03em;line-height:1">meiga</span>
+      <span style="font-family:'Times New Roman',Georgia,serif;font-style:italic;font-size:1rem;color:#fca311;letter-spacing:0.2em;font-weight:400">search</span>
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar-wrapper w-full">
+      <input id="searchInput" type="text" placeholder="What document or functionality do you need?" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search documents" />
+      <div class="flex items-center gap-2 pl-2 flex-shrink-0">
+        <button id="searchBtn" onclick="onSearchSubmit()"
+          style="background:#14213d;border:none;color:#fff;cursor:pointer;padding:10px 20px;border-radius:14px 3px 14px 3px;font-family:'Inter',sans-serif;font-size:.84rem;font-weight:600;transition:background .15s,color .15s;white-space:nowrap"
+          onmouseover="this.style.background='#fca311';this.style.color='#14213d'"
+          onmouseout="this.style.background='#14213d';this.style.color='#fff'">
+          Buscar
+        </button>
+      </div>
+    </div>
+
+    <!-- Mode toggle -->
+    <div class="mode-toggle" role="group" aria-label="Search mode">
+      <button class="mode-btn active" id="modeDirectBtn" onclick="setMode('direct')" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
+        <span>Búsqueda directa</span>
+      </button>
+      <button class="mode-btn" id="modeDescBtn" onclick="setMode('descriptive')" type="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828l.645-1.937zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.734 1.734 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.734 1.734 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.734 1.734 0 0 0 3.407 2.31l.387-1.162zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L10.863.1z"/></svg>
+        <span>Búsqueda descriptiva</span>
+      </button>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex flex-wrap gap-2 justify-center" id="chipsRow" role="group" aria-label="Filter by document type">
+      <button class="chip" data-type="pdf"          onclick="toggleChip(this)" type="button" aria-pressed="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/></svg>
+        <span>PDFs</span>
+      </button>
+      <button class="chip" data-type="contract"     onclick="toggleChip(this)" type="button" aria-pressed="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M4.5 1A1.5 1.5 0 0 0 3 2.5v9A1.5 1.5 0 0 0 4.5 13H6a.5.5 0 0 0 0-1H4.5a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5H10a.5.5 0 0 0 0 1h1.5A1.5 1.5 0 0 0 13 11.5v-9A1.5 1.5 0 0 0 11.5 1h-7z"/><path d="M8 0a.5.5 0 0 0-.5.5v4.793L6.354 4.146a.5.5 0 1 0-.708.708L8 7.207l2.354-2.353a.5.5 0 0 0-.708-.708L8.5 5.293V.5A.5.5 0 0 0 8 0zm.5 16v-.293l2.354-2.353a.5.5 0 0 0-.708-.708L8 14.793l-2.146-2.147a.5.5 0 0 0-.708.708L7.5 15.707V16h1z"/></svg>
+        <span>Contratos</span>
+      </button>
+      <button class="chip" data-type="code_snippet" onclick="toggleChip(this)" type="button" aria-pressed="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>
+        <span>Código</span>
+      </button>
+      <button class="chip" data-type="invoice"      onclick="toggleChip(this)" type="button" aria-pressed="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.667V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2h-11z"/></svg>
+        <span>Facturas</span>
+      </button>
+      <button class="chip" data-type="proposal"     onclick="toggleChip(this)" type="button" aria-pressed="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1z"/></svg>
+        <span>Propuestas</span>
+      </button>
+    </div>
+
+    <!-- Recent searches (shown in pre-search state only) -->
+    <div id="recentSection" class="w-full" style="display:none">
+      <div class="flex items-center justify-between mb-2" style="padding:0 2px">
+        <span class="recent-label">Búsquedas recientes</span>
+        <button class="clear-all-btn" onclick="clearAllHistory()" type="button">Borrar todo</button>
+      </div>
+      <ul id="recentList" class="m-0 p-0 flex flex-col gap-1"></ul>
+    </div>
+
+  </div>
+
+  <!-- Results section -->
+  <div id="resultsSection" class="w-full mt-7 flex flex-col gap-3" style="max-width:720px;display:none">
+    <div id="stateLoading" style="display:none" class="flex justify-center py-12">
+      <div class="spinner"></div>
+    </div>
+    <div id="stateError" class="error-state" style="display:none">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+      <p id="errorText"></p>
+    </div>
+    <div id="stateEmpty" class="flex flex-col items-center gap-3 py-12" style="display:none;color:rgba(20,33,61,.4)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="rgba(20,33,61,.3)" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z"/></svg>
+      <p id="emptyText" style="margin:0;font-size:.88rem;text-align:center"></p>
+    </div>
+    <p id="resultsMeta" style="display:none;font-size:.78rem;color:rgba(20,33,61,.55);margin:0"></p>
+    <div id="resultsList" class="flex flex-col gap-3" style="display:none"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── IndexedDB (mirrors root-directory.service.ts) ─────── */
+const DB_NAME='meiga-search-db', DB_VER=1, STORE='root-dir', DIR_KEY='rootDirectory';
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,DB_VER);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE)};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbGet(k){const db=await openDB();return new Promise((res,rej)=>{const r=db.transaction(STORE,'readonly').objectStore(STORE).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function dbSet(k,v){const db=await openDB();return new Promise((res,rej)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).put(v,k);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+
+/* ── State ─────────────────────────────────────────────── */
+let currentMode='direct', activeFilters=[], hasSearched=false, currentQuery='', rootDirPath=null;
+let searchHistory=JSON.parse(localStorage.getItem('meiga-history')||'[]');
+let fmOpen=false;
+const $=id=>document.getElementById(id);
+
+/* ── Toast ─────────────────────────────────────────────── */
+let _tt=null;
+function showToast(msg,dur=3500){clearTimeout(_tt);const t=$('toast');t.textContent=msg;t.classList.add('show');_tt=setTimeout(()=>t.classList.remove('show'),dur)}
+
+/* ── Escape ────────────────────────────────────────────── */
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ── Medium date ───────────────────────────────────────── */
+function mediumDate(iso){try{return new Date(iso).toLocaleDateString('es-ES',{year:'numeric',month:'short',day:'numeric'})}catch{return iso||''}}
+
+/* ── Layout ────────────────────────────────────────────── */
+function setHasSearched(v){
+  hasSearched=v;
+  $('appTitle').style.display=v?'none':'flex';
+  $('recentSection').style.display=(!v&&searchHistory.length>0)?'block':'none';
+  const l=$('shellLayout');
+  if(v){l.style.justifyContent='flex-start';l.style.paddingTop='40px'}
+  else {l.style.justifyContent='center';l.style.paddingTop='32px'}
+}
+function showResultsState(s){
+  $('resultsSection').style.display=s==='hidden'?'none':'block';
+  $('stateLoading').style.display=s==='loading'?'flex':'none';
+  $('stateError').style.display=s==='error'?'flex':'none';
+  $('stateEmpty').style.display=s==='empty'?'flex':'none';
+  $('resultsMeta').style.display=s==='results'?'block':'none';
+  $('resultsList').style.display=s==='results'?'flex':'none';
+}
+
+/* ── Root directory ────────────────────────────────────── */
+function dirName(path){if(!path)return null;const p=path.split('/').filter(Boolean);return p.length?p[p.length-1]:path}
+function updateDirUI(path){
+  rootDirPath=path;
+  const el=$('fmDirName');
+  if(path){el.textContent=dirName(path);el.classList.remove('fm-dir-name--unset');$('pickerOverlay').style.display='none'}
+  else{el.textContent='Sin configurar';el.classList.add('fm-dir-name--unset');$('pickerOverlay').style.display='flex'}
+}
+async function loadStoredDirectory(){
+  try{const s=await dbGet(DIR_KEY);if(s&&typeof s==='string')updateDirUI(s);else updateDirUI(null)}
+  catch{updateDirUI(null)}
+}
+
+/* doPickDirectory — mirrors rootDirService.pickDirectory()
+   isChange=true: called from "Cambiar directorio" (keeps state if cancelled)
+   isChange=false: first-time pick from overlay */
+async function doPickDirectory(isChange){
+  closeFmMenu();
+  const btn=$('pickerBtn'),lbl=$('pickerBtnLabel');
+  if(btn){btn.disabled=true;if(lbl)lbl.textContent='Abriendo…'}
+  $('searchBtn').disabled=true;
+  try{
+    const r=await fetch('/api/system/pick-directory');
+    const {path}=await r.json();
+    if(!path){showToast('Selección cancelada.');if(!isChange&&!rootDirPath)updateDirUI(null);return}
+    showToast('Configurando directorio…',10000);
+    await fetch('/api/system/database',{method:'DELETE'});
+    const r2=await fetch('/api/system/index-directory',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path})});
+    const {dispatched}=await r2.json();
+    await dbSet(DIR_KEY,path);
+    updateDirUI(path);
+    resetSearchState();
+    showToast(`✓ Directorio configurado. ${dispatched} archivo${dispatched!==1?'s':''} en proceso.`,4000);
+  }catch(e){showToast(`Error: ${e.message}`);$('pickerHint').style.display='flex'}
+  finally{if(btn){btn.disabled=false;if(lbl)lbl.textContent='Elegir carpeta'}$('searchBtn').disabled=false}
+}
+
+function resetSearchState(){hasSearched=false;currentQuery='';$('searchInput').value='';showResultsState('hidden');setHasSearched(false)}
+
+/* ── File manager ──────────────────────────────────────── */
+function toggleFmMenu(){fmOpen=!fmOpen;$('fmPopover').style.display=fmOpen?'flex':'none';$('fmBackdrop').style.display=fmOpen?'block':'none';$('fmChevron').style.transform=fmOpen?'rotate(180deg)':''}
+function closeFmMenu(){fmOpen=false;$('fmPopover').style.display='none';$('fmBackdrop').style.display='none';$('fmChevron').style.transform=''}
+
+/* ── Clear database ────────────────────────────────────── */
+async function clearDatabase(){
+  closeFmMenu();
+  if(!confirm('¿Seguro que quieres eliminar TODOS los documentos indexados? Esta acción no se puede deshacer.'))return;
+  try{showToast('Purgando base de datos…',5000);const r=await fetch('/api/system/database',{method:'DELETE'});if(!r.ok)throw new Error(`HTTP ${r.status}`);resetSearchState();showToast('✓ Base de datos limpiada.')}
+  catch(e){showToast(`Error: ${e.message}`)}
+}
+
+/* ── Search mode ───────────────────────────────────────── */
+function setMode(m){currentMode=m;$('modeDirectBtn').classList.toggle('active',m==='direct');$('modeDescBtn').classList.toggle('active',m==='descriptive')}
+
+/* ── Filter chips ──────────────────────────────────────── */
+function toggleChip(btn){
+  const t=btn.dataset.type,i=activeFilters.indexOf(t);
+  if(i>-1)activeFilters.splice(i,1);else activeFilters.push(t);
+  const active=activeFilters.includes(t);
+  btn.classList.toggle('chip--active',active);
+  btn.setAttribute('aria-pressed',String(active));
+}
+
+/* ── History ───────────────────────────────────────────── */
+function saveHistory(){localStorage.setItem('meiga-history',JSON.stringify(searchHistory))}
+function addToHistory(q){searchHistory=[q,...searchHistory.filter(h=>h!==q)].slice(0,8);saveHistory()}
+function removeFromHistory(q){searchHistory=searchHistory.filter(h=>h!==q);saveHistory();renderHistory()}
+function clearAllHistory(){searchHistory=[];saveHistory();renderHistory()}
+function renderHistory(){
+  const list=$('recentList');if(!list)return;
+  list.innerHTML=searchHistory.map(item=>`
+    <li class="recent-item" onclick="selectHistory(${JSON.stringify(item)})">
+      <svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
+      <span class="item-text">${esc(item)}</span>
+      <button class="remove-btn" onclick="event.stopPropagation();removeFromHistory(${JSON.stringify(item)})" aria-label="Eliminar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+      </button>
+    </li>`).join('');
+  $('recentSection').style.display=(!hasSearched&&searchHistory.length>0)?'block':'none';
+}
+function selectHistory(q){$('searchInput').value=q;onSearchSubmit()}
+
+/* ── Search ────────────────────────────────────────────── */
+function onSearchSubmit(){
+  const q=$('searchInput').value.trim();if(!q)return;
+  currentQuery=q;addToHistory(q);setHasSearched(true);performSearch(q);
+}
+async function performSearch(q){
+  showResultsState('loading');
+  try{
+    const p=new URLSearchParams({q,top_k:10});
+    activeFilters.forEach(t=>p.append('type',t));
+    const r=await fetch(`/api/search?${p}`);
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const data=await r.json();
+    if(!data.results||data.results.length===0){$('emptyText').innerHTML=`No se encontraron documentos para <strong>"${esc(q)}"</strong>`;showResultsState('empty');return}
+    const n=data.total;
+    $('resultsMeta').textContent=`${n} resultado${n!==1?'s':''} encontrado${n!==1?'s':''}`;
+    $('resultsList').innerHTML=data.results.map(renderCard).join('');
+    showResultsState('results');
+  }catch(e){$('errorText').textContent=e.message;showResultsState('error')}
+}
+
+/* ── Result card ───────────────────────────────────────── */
+function renderCard(r){
+  const doc=r.document,frag=r.fragment,score=Math.round(r.relevanceScore*100);
+  const fragHtml=applyHighlights(esc(frag.text),frag.highlights||[]);
+  const tagsHtml=(doc.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+  const footer=[];
+  if(doc.author)footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${esc(doc.author)}</span>`);
+  footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${mediumDate(doc.updatedAt)}</span>`);
+  if(doc.tags&&doc.tags.length)footer.push(`<div class="flex gap-1 flex-wrap">${tagsHtml}</div>`);
+  return`<div class="result-card" role="button" tabindex="0" aria-label="${esc(doc.title)}" onkeydown="if(event.key==='Enter')this.click()">
+    <div class="flex items-start justify-between gap-3 mb-2">
+      <div class="flex flex-col gap-0.5 min-w-0">
+        <span class="doc-type">${esc(doc.type.toUpperCase())}</span>
+        <span class="doc-title" title="${esc(doc.title)}">${esc(doc.title)}</span>
+      </div>
+      <div class="score-badge" title="Relevance: ${score}%">${score}%</div>
+    </div>
+    <p class="fragment">${fragHtml}</p>
+    <div class="flex items-center gap-2 flex-wrap">${footer.join('')}</div>
+  </div>`;
+}
+function applyHighlights(t,hl){
+  if(!hl||!hl.length)return t;
+  let out='',c=0;
+  [...hl].sort((a,b)=>a.start-b.start).forEach(h=>{out+=t.slice(c,h.start)+`<mark>${t.slice(h.start,h.end)}</mark>`;c=h.end});
+  return out+t.slice(c);
+}
+
+/* ── Event listeners ───────────────────────────────────── */
+$('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')onSearchSubmit()});
+
+/* ── Boot ──────────────────────────────────────────────── */
+(async()=>{renderHistory();await loadStoredDirectory()})();
+</script>
+</body>
+</html>
