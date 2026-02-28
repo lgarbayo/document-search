@@ -340,12 +340,8 @@ class VectorDBService:
         query_text: str,
         top_k: int = 5,
         filters: dict = None,
-<<<<<<< Updated upstream
         range_filters: dict = None,
         exact_filters: dict = None,
-=======
-        role: str = "normal",
->>>>>>> Stashed changes
     ) -> list[dict]:
         """
         Búsqueda híbrida: semántica + léxica en paralelo con fusión de resultados.
@@ -397,7 +393,6 @@ class VectorDBService:
             for field, value in exact_filters.items():
                 must_conditions.append(FieldCondition(key=field, match=MatchValue(value=value)))
 
-<<<<<<< Updated upstream
         # Filtro para búsqueda semántica pura
         semantic_filter = Filter(
             should=should_conditions if should_conditions else None,
@@ -412,31 +407,6 @@ class VectorDBService:
             should=should_conditions if should_conditions else None,
             must=lexical_must
         )
-=======
-        # Role-based department filter (must condition — restricts all results)
-        role_must = []
-        if role != "admin":
-            role_must.append(
-                FieldCondition(key="department", match=MatchValue(value=role))
-            )
-
-        # Filtro para búsqueda semántica pura
-        if base_conditions and role_must:
-            semantic_filter = Filter(must=role_must, should=base_conditions)
-        elif role_must:
-            semantic_filter = Filter(must=role_must)
-        elif base_conditions:
-            semantic_filter = Filter(should=base_conditions)
-        else:
-            semantic_filter = None
-
-        # Filtro para búsqueda léxica: base + MatchText (+ role)
-        lexical_must = [FieldCondition(key="text", match=MatchText(text=query_text))] + role_must
-        if base_conditions:
-            lexical_filter = Filter(must=lexical_must, should=base_conditions)
-        else:
-            lexical_filter = Filter(must=lexical_must)
->>>>>>> Stashed changes
 
         # Ejecutar ambas búsquedas en paralelo
         semantic_task = asyncio.to_thread(
