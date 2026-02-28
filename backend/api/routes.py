@@ -132,7 +132,7 @@ async def get_task_status(task_id: str):
 @router.get("/search", tags=["Búsqueda"])
 async def search_documents(
     q: str = Query(..., min_length=1, description="Texto de búsqueda"),
-    top_k: int = Query(5, ge=1, le=20, description="Número de resultados"),
+    top_k: int = Query(30, ge=1, le=1000, description="Número de resultados"),
     type: list[str] = Query(None, description="Filtrar por tipo de documento"),
     expand: bool = Query(False, description="Activar expansión de consulta con LLM"),
 ):
@@ -171,8 +171,11 @@ async def search_documents(
                 if t in ext_map:
                     extensions.extend(ext_map[t])
                 else:
-                    # Si no es un formato de archivo conocido, es una Categoría (ej. RRHH, Finanzas)
+                    # Añadimos la Categoría en todas sus variantes para hacer el filtro Case-Insensitive
+                    # en Qdrant (que hace match exacto por defecto)
                     categories.append(t)
+                    categories.append(t.lower())
+                    categories.append(t.capitalize())
             
             if extensions:
                 filters["extension"] = list(set(extensions))

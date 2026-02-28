@@ -230,25 +230,23 @@ class VectorDBService:
         query_filter = None
         
         if filters:
-            must_conditions = []
+            # En vez de "must" (AND) estricto entre extensiones y categorías,
+            # lo cambiamos a "should" (OR) global. Si el usuario marca "PDF" y "Finanzas",
+            # quiere ver todos los PDFs y además todos los docs de Finanzas.
+            should_conditions = []
             
             for key, value in filters.items():
                 if not value:
                     continue
                     
                 if isinstance(value, list):
-                    should_conditions = [
-                        FieldCondition(key=key, match=MatchValue(value=v))
-                        for v in value
-                    ]
-                    must_conditions.append(Filter(should=should_conditions))
+                    for v in value:
+                        should_conditions.append(FieldCondition(key=key, match=MatchValue(value=v)))
                 else:
-                    must_conditions.append(
-                        FieldCondition(key=key, match=MatchValue(value=value))
-                    )
+                    should_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
                     
-            if must_conditions:
-                query_filter = Filter(must=must_conditions)
+            if should_conditions:
+                query_filter = Filter(should=should_conditions)
 
         # Buscar en Qdrant (I/O-Bound síncrono, lo mandamos a un thread)
         results = await asyncio.to_thread(

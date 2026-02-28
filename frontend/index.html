@@ -227,6 +227,38 @@
       color: var(--text);
     }
 
+    .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border: 1px solid rgba(20, 33, 61, .15);
+      border-radius: 20px 4px 20px 4px;
+      background: rgba(255, 255, 255, .6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      color: var(--text);
+      font-family: 'Inter', 'Roboto', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(20, 33, 61, .06);
+      transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, .9);
+      border-color: rgba(20, 33, 61, .25);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(20, 33, 61, .1);
+    }
+
+    .filter-btn--active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
     /* Filter Popover specific */
     .filter-popover {
       top: calc(100% + 8px);
@@ -1311,7 +1343,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#fca311" class="fm-dir-icon"
             viewBox="0 0 16 16">
             <path
-              d="M.5 3.5A1.5 1.5 0 0 1 2 2h3.586l2 2H14a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 14 14H2a1.5 1.5 0 0 1-1.5-1.5v-10zM2 3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5H7.586L5.586 3H2z" />
+              d="M.5 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zM2 3a.5.5 0 0 0-.5.5v10a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5H7.586L5.586 3H2z" />
           </svg>
           <span class="fm-dir-name fm-dir-name--unset" id="fmDirName">Sin configurar</span>
         </div>
@@ -1388,7 +1420,8 @@
       </div>
 
       <!-- Filter Dropdown -->
-      <div id="filterContainer" style="position:relative; display:inline-block; margin: 0 auto;">
+      <div id="filterContainer"
+        style="position:relative; display:flex; justify-content:center; margin: 0 auto; width: 100%;">
         <button id="filterBtn" class="filter-btn" onclick="toggleFilterMenu(event)" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
             <path
@@ -1410,15 +1443,15 @@
             <div class="filter-section-title">Por Categoría</div>
             <div class="filter-list">
               <label class="filter-label"><input type="checkbox" value="Finanzas" onchange="toggleFilter(this)"
-                  class="filter-cb"> 📊 Finanzas</label>
+                  class="filter-cb"> Finanzas</label>
               <label class="filter-label"><input type="checkbox" value="RRHH" onchange="toggleFilter(this)"
-                  class="filter-cb"> 👥 RRHH</label>
+                  class="filter-cb"> RRHH</label>
               <label class="filter-label"><input type="checkbox" value="Legal" onchange="toggleFilter(this)"
-                  class="filter-cb"> ⚖️ Legal</label>
+                  class="filter-cb"> Legal</label>
               <label class="filter-label"><input type="checkbox" value="Técnico" onchange="toggleFilter(this)"
-                  class="filter-cb"> 💻 Técnico</label>
+                  class="filter-cb"> Técnico</label>
               <label class="filter-label"><input type="checkbox" value="Comercial" onchange="toggleFilter(this)"
-                  class="filter-cb"> 🤝 Comercial</label>
+                  class="filter-cb"> Comercial</label>
             </div>
           </div>
 
@@ -1426,15 +1459,15 @@
             <div class="filter-section-title">Por Tipo de Archivo</div>
             <div class="filter-list">
               <label class="filter-label"><input type="checkbox" value="pdf" onchange="toggleFilter(this)"
-                  class="filter-cb"> 📄 PDF</label>
+                  class="filter-cb"> PDF</label>
               <label class="filter-label"><input type="checkbox" value="xlsx" onchange="toggleFilter(this)"
-                  class="filter-cb"> 📊 Excel (XLSX)</label>
+                  class="filter-cb"> Excel (XLSX)</label>
               <label class="filter-label"><input type="checkbox" value="csv" onchange="toggleFilter(this)"
-                  class="filter-cb"> 📑 CSV</label>
+                  class="filter-cb"> CSV</label>
               <label class="filter-label"><input type="checkbox" value="txt" onchange="toggleFilter(this)"
-                  class="filter-cb"> 📝 Texto (TXT)</label>
+                  class="filter-cb"> Texto (TXT)</label>
               <label class="filter-label"><input type="checkbox" value="image" onchange="toggleFilter(this)"
-                  class="filter-cb"> 🖼️ Imagen</label>
+                  class="filter-cb"> Imagen</label>
             </div>
           </div>
 
@@ -1442,7 +1475,7 @@
       </div>
 
       <!-- Recent searches (shown in pre-search state only) -->
-      <div id="recentSection" class="w-full" style="display:none">
+      <div id="recentSection" class="w-full" style="display:none; margin-top: 10px;">
         <div class="flex items-center justify-between mb-2" style="padding:0 2px">
           <span class="recent-label">Búsquedas recientes</span>
           <button class="clear-all-btn" onclick="clearAllHistory()" type="button">Borrar todo</button>
@@ -1450,225 +1483,259 @@
         <ul id="recentList" class="m-0 p-0 flex flex-col gap-1"></ul>
       </div>
 
-    </div>
+      <!-- Results section -->
+      <div id="resultsSection" class="w-full mt-7 flex flex-col gap-3" style="max-width:720px;display:none">
+        <div id="stateLoading" style="display:none" class="flex justify-center py-12">
+          <div class="spinner"></div>
+        </div>
+        <div id="stateError" class="error-state" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
+            <path
+              d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+          </svg>
+          <p id="errorText"></p>
+        </div>
+        <div id="stateEmpty" class="flex flex-col items-center gap-3 py-12"
+          style="display:none;color:rgba(20,33,61,.4)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="rgba(20,33,61,.3)" viewBox="0 0 16 16">
+            <path
+              d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z" />
+          </svg>
+          <p id="emptyText" style="margin:0;font-size:.88rem;text-align:center"></p>
+        </div>
+        <p id="resultsMeta" style="display:none;font-size:.78rem;color:rgba(20,33,61,.55);margin:0"></p>
+        <div id="resultsList" class="flex flex-col gap-3" style="display:none"></div>
+        <div id="paginationContainer" style="display:none; justify-content:center; padding: 10px 0;">
+          <button id="loadMoreBtn" class="filter-btn" onclick="loadMoreResults()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+              <path
+                d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+            </svg>
+            Cargar más resultados
+          </button>
+        </div>
+      </div> <!-- Closes Results section -->
 
-    <!-- Results section -->
-    <div id="resultsSection" class="w-full mt-7 flex flex-col gap-3" style="max-width:720px;display:none">
-      <div id="stateLoading" style="display:none" class="flex justify-center py-12">
-        <div class="spinner"></div>
-      </div>
-      <div id="stateError" class="error-state" style="display:none">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
-          <path
-            d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-        </svg>
-        <p id="errorText"></p>
-      </div>
-      <div id="stateEmpty" class="flex flex-col items-center gap-3 py-12" style="display:none;color:rgba(20,33,61,.4)">
-        <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="rgba(20,33,61,.3)" viewBox="0 0 16 16">
-          <path
-            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z" />
-        </svg>
-        <p id="emptyText" style="margin:0;font-size:.88rem;text-align:center"></p>
-      </div>
-      <!-- Query Expansion Info (LLM) -->
-      <div id="queryExpansionInfo" class="query-expansion-info" style="display:none">
-        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="#8b5cf6" viewBox="0 0 16 16">
-          <path d="M9.669.864 8 0 6.331.864l-1.858.282-.842 1.68-1.337 1.32L2.6 6l-.306 1.854 1.337 1.32.842 1.68 1.858.282L8 12l1.669-.864 1.858-.282.842-1.68 1.337-1.32L13.4 6l.306-1.854-1.337-1.32-.842-1.68L9.669.864zm1.196 1.193.684 1.365 1.086 1.072L12.387 6l.248 1.506-1.086 1.072-.684 1.365-1.51.229L8 10.874l-1.355-.702-1.51-.229-.684-1.365-1.086-1.072L3.614 6l-.25-1.506 1.087-1.072.684-1.365 1.51-.229L8 1.126l1.356.702 1.509.229z"/>
-          <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z"/>
-        </svg>
-        <div class="content">
-          <div class="label">
-            <span>🤖 Búsqueda Descriptiva Activada</span>
+      <!-- Results section -->
+      <div id="resultsSection" class="w-full mt-7 flex flex-col gap-3" style="max-width:720px;display:none">
+        <div id="stateLoading" style="display:none" class="flex justify-center py-12">
+          <div class="spinner"></div>
+        </div>
+        <div id="stateError" class="error-state" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
+            <path
+              d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+          </svg>
+          <p id="errorText"></p>
+        </div>
+        <div id="stateEmpty" class="flex flex-col items-center gap-3 py-12"
+          style="display:none;color:rgba(20,33,61,.4)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="rgba(20,33,61,.3)" viewBox="0 0 16 16">
+            <path
+              d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z" />
+          </svg>
+          <p id="emptyText" style="margin:0;font-size:.88rem;text-align:center"></p>
+        </div>
+        <!-- Query Expansion Info (LLM) -->
+        <div id="queryExpansionInfo" class="query-expansion-info" style="display:none">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="#8b5cf6" viewBox="0 0 16 16">
+            <path
+              d="M9.669.864 8 0 6.331.864l-1.858.282-.842 1.68-1.337 1.32L2.6 6l-.306 1.854 1.337 1.32.842 1.68 1.858.282L8 12l1.669-.864 1.858-.282.842-1.68 1.337-1.32L13.4 6l.306-1.854-1.337-1.32-.842-1.68L9.669.864zm1.196 1.193.684 1.365 1.086 1.072L12.387 6l.248 1.506-1.086 1.072-.684 1.365-1.51.229L8 10.874l-1.355-.702-1.51-.229-.684-1.365-1.086-1.072L3.614 6l-.25-1.506 1.087-1.072.684-1.365 1.51-.229L8 1.126l1.356.702 1.509.229z" />
+            <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
+          </svg>
+          <div class="content">
+            <div class="label">
+              <span>🤖 Búsqueda Descriptiva Activada</span>
+            </div>
+            <div class="keywords" id="expandedKeywords"></div>
           </div>
-          <div class="keywords" id="expandedKeywords"></div>
+        </div>
+        <p id="resultsMeta" style="display:none;font-size:.78rem;color:rgba(20,33,61,.55);margin:0"></p>
+        <div id="resultsList" class="flex flex-col gap-3" style="display:none"></div>
+      </div>
+
+    </div> <!-- Closes shellLayout -->
+
+    <!-- DOCUMENT DETAIL PANEL -->
+    <div class="dd-backdrop" id="ddModal" style="display:none" onclick="if(event.target===this)closeDocDetail()">
+      <div class="dd-panel">
+        <div class="dd-header">
+          <h2 id="ddTitle">Documento</h2>
+          <button class="dd-close" onclick="closeDocDetail()" aria-label="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path
+                d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+            </svg>
+          </button>
+        </div>
+        <div class="dd-meta" id="ddMeta"></div>
+        <div class="dd-body" id="ddBody">
+          <div class="fe-empty">
+            <div class="spinner" style="width:24px;height:24px;margin:0 auto"></div>
+          </div>
+        </div>
+        <div class="dd-source">
+          <span class="dd-source-path" id="ddSource"></span>
         </div>
       </div>
-      <p id="resultsMeta" style="display:none;font-size:.78rem;color:rgba(20,33,61,.55);margin:0"></p>
-      <div id="resultsList" class="flex flex-col gap-3" style="display:none"></div>
     </div>
 
-  </div>
-
-  <!-- DOCUMENT DETAIL PANEL -->
-  <div class="dd-backdrop" id="ddModal" style="display:none" onclick="if(event.target===this)closeDocDetail()">
-    <div class="dd-panel">
-      <div class="dd-header">
-        <h2 id="ddTitle">Documento</h2>
-        <button class="dd-close" onclick="closeDocDetail()" aria-label="Cerrar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+    <!-- FILE EXPLORER MODAL -->
+    <div class="fe-backdrop" id="feModal" style="display:none" onclick="if(event.target===this)closeExplorer()">
+      <div class="fe-card">
+        <div class="fe-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
             <path
-              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+              d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z" />
           </svg>
-        </button>
-      </div>
-      <div class="dd-meta" id="ddMeta"></div>
-      <div class="dd-body" id="ddBody">
-        <div class="fe-empty">
-          <div class="spinner" style="width:24px;height:24px;margin:0 auto"></div>
+          <h3>Explorar directorios</h3>
+          <button class="fe-close" onclick="closeExplorer()" aria-label="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path
+                d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+            </svg>
+          </button>
+        </div>
+        <div class="fe-breadcrumb" id="feBreadcrumb"></div>
+        <div class="fe-list" id="feList"></div>
+        <div class="fe-footer">
+          <span class="fe-footer-path" id="feCurrentPath">/app</span>
+          <button class="fe-select-btn" id="feSelectBtn" onclick="selectExplorerDir()">Seleccionar esta carpeta</button>
         </div>
       </div>
-      <div class="dd-source">
-        <span class="dd-source-path" id="ddSource"></span>
-      </div>
     </div>
-  </div>
 
-  <!-- FILE EXPLORER MODAL -->
-  <div class="fe-backdrop" id="feModal" style="display:none" onclick="if(event.target===this)closeExplorer()">
-    <div class="fe-card">
-      <div class="fe-header">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
-          <path
-            d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z" />
-        </svg>
-        <h3>Explorar directorios</h3>
-        <button class="fe-close" onclick="closeExplorer()" aria-label="Cerrar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-            <path
-              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-          </svg>
-        </button>
-      </div>
-      <div class="fe-breadcrumb" id="feBreadcrumb"></div>
-      <div class="fe-list" id="feList"></div>
-      <div class="fe-footer">
-        <span class="fe-footer-path" id="feCurrentPath">/app</span>
-        <button class="fe-select-btn" id="feSelectBtn" onclick="selectExplorerDir()">Seleccionar esta carpeta</button>
-      </div>
-    </div>
-  </div>
+    <div id="toast"></div>
 
-  <div id="toast"></div>
+    <script>
+      /* ── IndexedDB (mirrors root-directory.service.ts) ─────── */
+      const DB_NAME = 'meiga-search-db', DB_VER = 1, STORE = 'root-dir', DIR_KEY = 'rootDirectory';
+      function openDB() { return new Promise((res, rej) => { const r = indexedDB.open(DB_NAME, DB_VER); r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE) }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }) }
+      async function dbGet(k) { const db = await openDB(); return new Promise((res, rej) => { const r = db.transaction(STORE, 'readonly').objectStore(STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }) }
+      async function dbSet(k, v) { const db = await openDB(); return new Promise((res, rej) => { const r = db.transaction(STORE, 'readwrite').objectStore(STORE).put(v, k); r.onsuccess = () => res(); r.onerror = () => rej(r.error) }) }
 
-  <script>
-    /* ── IndexedDB (mirrors root-directory.service.ts) ─────── */
-    const DB_NAME = 'meiga-search-db', DB_VER = 1, STORE = 'root-dir', DIR_KEY = 'rootDirectory';
-    function openDB() { return new Promise((res, rej) => { const r = indexedDB.open(DB_NAME, DB_VER); r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE) }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }) }
-    async function dbGet(k) { const db = await openDB(); return new Promise((res, rej) => { const r = db.transaction(STORE, 'readonly').objectStore(STORE).get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }) }
-    async function dbSet(k, v) { const db = await openDB(); return new Promise((res, rej) => { const r = db.transaction(STORE, 'readwrite').objectStore(STORE).put(v, k); r.onsuccess = () => res(); r.onerror = () => rej(r.error) }) }
+      /* ── State ─────────────────────────────────────────────── */
+      let currentMode = 'direct', activeFilters = [], hasSearched = false, currentQuery = '', rootDirPath = null;
+      let searchHistory = JSON.parse(localStorage.getItem('meiga-history') || '[]');
+      let fmOpen = false;
+      const $ = id => document.getElementById(id);
 
-    /* ── State ─────────────────────────────────────────────── */
-    let currentMode = 'direct', activeFilters = [], hasSearched = false, currentQuery = '', rootDirPath = null;
-    let searchHistory = JSON.parse(localStorage.getItem('meiga-history') || '[]');
-    let fmOpen = false;
-    const $ = id => document.getElementById(id);
+      /* ── Toast ─────────────────────────────────────────────── */
+      let _tt = null;
+      function showToast(msg, dur = 3500) { clearTimeout(_tt); const t = $('toast'); t.textContent = msg; t.classList.add('show'); _tt = setTimeout(() => t.classList.remove('show'), dur) }
 
-    /* ── Toast ─────────────────────────────────────────────── */
-    let _tt = null;
-    function showToast(msg, dur = 3500) { clearTimeout(_tt); const t = $('toast'); t.textContent = msg; t.classList.add('show'); _tt = setTimeout(() => t.classList.remove('show'), dur) }
+      /* ── Escape ────────────────────────────────────────────── */
+      function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
-    /* ── Escape ────────────────────────────────────────────── */
-    function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
+      /* ── Medium date ───────────────────────────────────────── */
+      function mediumDate(iso) { try { return new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return iso || '' } }
 
-    /* ── Medium date ───────────────────────────────────────── */
-    function mediumDate(iso) { try { return new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return iso || '' } }
+      /* ── Layout ────────────────────────────────────────────── */
+      function setHasSearched(v) {
+        hasSearched = v;
+        $('appTitle').style.display = v ? 'none' : 'flex';
+        $('recentSection').style.display = (!v && searchHistory.length > 0) ? 'block' : 'none';
+        const l = $('shellLayout');
+        if (v) { l.style.justifyContent = 'flex-start'; l.style.paddingTop = '40px' }
+        else { l.style.justifyContent = 'center'; l.style.paddingTop = '32px' }
+      }
+      function showResultsState(s) {
+        $('resultsSection').style.display = s === 'hidden' ? 'none' : 'block';
+        $('stateLoading').style.display = s === 'loading' ? 'flex' : 'none';
+        $('stateError').style.display = s === 'error' ? 'flex' : 'none';
+        $('stateEmpty').style.display = s === 'empty' ? 'flex' : 'none';
+        $('resultsMeta').style.display = s === 'results' ? 'block' : 'none';
+        $('resultsList').style.display = s === 'results' ? 'flex' : 'none';
+        // Query expansion info se maneja separadamente (solo visible cuando hay expansión)
+      }
 
-    /* ── Layout ────────────────────────────────────────────── */
-    function setHasSearched(v) {
-      hasSearched = v;
-      $('appTitle').style.display = v ? 'none' : 'flex';
-      $('recentSection').style.display = (!v && searchHistory.length > 0) ? 'block' : 'none';
-      const l = $('shellLayout');
-      if (v) { l.style.justifyContent = 'flex-start'; l.style.paddingTop = '40px' }
-      else { l.style.justifyContent = 'center'; l.style.paddingTop = '32px' }
-    }
-    function showResultsState(s) {
-      $('resultsSection').style.display = s === 'hidden' ? 'none' : 'block';
-      $('stateLoading').style.display = s === 'loading' ? 'flex' : 'none';
-      $('stateError').style.display = s === 'error' ? 'flex' : 'none';
-      $('stateEmpty').style.display = s === 'empty' ? 'flex' : 'none';
-      $('resultsMeta').style.display = s === 'results' ? 'block' : 'none';
-      $('resultsList').style.display = s === 'results' ? 'flex' : 'none';
-      // Query expansion info se maneja separadamente (solo visible cuando hay expansión)
-    }
+      /* ── Root directory ────────────────────────────────────── */
+      function dirName(path) { if (!path) return null; const p = path.split('/').filter(Boolean); return p.length ? p[p.length - 1] : path }
+      function updateDirUI(path) {
+        rootDirPath = path;
+        const el = $('fmDirName');
+        if (path) { el.textContent = dirName(path); el.classList.remove('fm-dir-name--unset'); $('pickerOverlay').style.display = 'none' }
+        else { el.textContent = 'Sin configurar'; el.classList.add('fm-dir-name--unset'); $('pickerOverlay').style.display = 'flex' }
+      }
+      async function loadStoredDirectory() {
+        try { const s = await dbGet(DIR_KEY); if (s && typeof s === 'string') updateDirUI(s); else updateDirUI(null) }
+        catch { updateDirUI(null) }
+      }
 
-    /* ── Root directory ────────────────────────────────────── */
-    function dirName(path) { if (!path) return null; const p = path.split('/').filter(Boolean); return p.length ? p[p.length - 1] : path }
-    function updateDirUI(path) {
-      rootDirPath = path;
-      const el = $('fmDirName');
-      if (path) { el.textContent = dirName(path); el.classList.remove('fm-dir-name--unset'); $('pickerOverlay').style.display = 'none' }
-      else { el.textContent = 'Sin configurar'; el.classList.add('fm-dir-name--unset'); $('pickerOverlay').style.display = 'flex' }
-    }
-    async function loadStoredDirectory() {
-      try { const s = await dbGet(DIR_KEY); if (s && typeof s === 'string') updateDirUI(s); else updateDirUI(null) }
-      catch { updateDirUI(null) }
-    }
+      /* doPickDirectory — mirrors rootDirService.pickDirectory()
+         isChange=true: called from "Cambiar directorio" (keeps state if cancelled)
+         isChange=false: first-time pick from overlay */
+      /* ── File Explorer ─────────────────────────────────────── */
+      let feCurrentDir = '/app';
+      let feIsChange = false;
 
-    /* doPickDirectory — mirrors rootDirService.pickDirectory()
-       isChange=true: called from "Cambiar directorio" (keeps state if cancelled)
-       isChange=false: first-time pick from overlay */
-    /* ── File Explorer ─────────────────────────────────────── */
-    let feCurrentDir = '/app';
-    let feIsChange = false;
+      async function doPickDirectory(isChange) {
+        closeFmMenu();
+        feIsChange = isChange;
+        feCurrentDir = rootDirPath || '/app/datasets';
+        // Ocultar el overlay del picker para que no tape el explorador
+        $('pickerOverlay').style.display = 'none';
+        $('feModal').style.display = 'flex';
+        await loadExplorerDir(feCurrentDir);
+      }
 
-    async function doPickDirectory(isChange) {
-      closeFmMenu();
-      feIsChange = isChange;
-      feCurrentDir = rootDirPath || '/app/datasets';
-      // Ocultar el overlay del picker para que no tape el explorador
-      $('pickerOverlay').style.display = 'none';
-      $('feModal').style.display = 'flex';
-      await loadExplorerDir(feCurrentDir);
-    }
+      function closeExplorer() {
+        $('feModal').style.display = 'none';
+        // Si no hay directorio configurado, volver a mostrar el overlay del picker
+        if (!rootDirPath) $('pickerOverlay').style.display = 'flex';
+      }
 
-    function closeExplorer() {
-      $('feModal').style.display = 'none';
-      // Si no hay directorio configurado, volver a mostrar el overlay del picker
-      if (!rootDirPath) $('pickerOverlay').style.display = 'flex';
-    }
+      function formatSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+      }
 
-    function formatSize(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-      return (bytes / 1048576).toFixed(1) + ' MB';
-    }
+      async function loadExplorerDir(dirPath) {
+        feCurrentDir = dirPath;
+        $('feCurrentPath').textContent = dirPath;
+        $('feList').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
 
-    async function loadExplorerDir(dirPath) {
-      feCurrentDir = dirPath;
-      $('feCurrentPath').textContent = dirPath;
-      $('feList').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
+        try {
+          const r = await fetch(`/api/system/list-directory?path=${encodeURIComponent(dirPath)}`);
+          if (!r.ok) throw new Error('No se puede acceder');
+          const data = await r.json();
 
-      try {
-        const r = await fetch(`/api/system/list-directory?path=${encodeURIComponent(dirPath)}`);
-        if (!r.ok) throw new Error('No se puede acceder');
-        const data = await r.json();
+          // Breadcrumb
+          const parts = data.current.split('/').filter(Boolean);
+          let breadHtml = `<button onclick="loadExplorerDir('/')">/</button>`;
+          let cumPath = '';
+          parts.forEach((p, i) => {
+            cumPath += '/' + p;
+            const isLast = i === parts.length - 1;
+            breadHtml += `<span style="color:rgba(20,33,61,.25)">/</span>`;
+            if (isLast) breadHtml += `<span style="font-weight:600;color:var(--text)">${esc(p)}</span>`;
+            else breadHtml += `<button onclick="loadExplorerDir('${cumPath}')">${esc(p)}</button>`;
+          });
+          $('feBreadcrumb').innerHTML = breadHtml;
 
-        // Breadcrumb
-        const parts = data.current.split('/').filter(Boolean);
-        let breadHtml = `<button onclick="loadExplorerDir('/')">/</button>`;
-        let cumPath = '';
-        parts.forEach((p, i) => {
-          cumPath += '/' + p;
-          const isLast = i === parts.length - 1;
-          breadHtml += `<span style="color:rgba(20,33,61,.25)">/</span>`;
-          if (isLast) breadHtml += `<span style="font-weight:600;color:var(--text)">${esc(p)}</span>`;
-          else breadHtml += `<button onclick="loadExplorerDir('${cumPath}')">${esc(p)}</button>`;
-        });
-        $('feBreadcrumb').innerHTML = breadHtml;
+          // Item list
+          if (!data.items || data.items.length === 0) {
+            $('feList').innerHTML = '<div class="fe-empty">Esta carpeta está vacía</div>';
+            return;
+          }
 
-        // Item list
-        if (!data.items || data.items.length === 0) {
-          $('feList').innerHTML = '<div class="fe-empty">Esta carpeta está vacía</div>';
-          return;
-        }
+          let listHtml = '';
 
-        let listHtml = '';
-
-        // Back button if we have a parent
-        if (data.parent) {
-          listHtml += `<button class="fe-item" onclick="loadExplorerDir('${data.parent}')">
+          // Back button if we have a parent
+          if (data.parent) {
+            listHtml += `<button class="fe-item" onclick="loadExplorerDir('${data.parent}')">
             <div class="fe-item-icon folder">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
             </div>
             <div class="fe-item-info"><span class="fe-item-name">..</span><span class="fe-item-meta">Carpeta padre</span></div>
           </button>`;
-        }
+          }
 
-        data.items.forEach(item => {
-          if (item.type === 'directory') {
-            listHtml += `<button class="fe-item" onclick="loadExplorerDir('${item.path}')">
+          data.items.forEach(item => {
+            if (item.type === 'directory') {
+              listHtml += `<button class="fe-item" onclick="loadExplorerDir('${item.path}')">
               <div class="fe-item-icon folder">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>
               </div>
@@ -1678,118 +1745,118 @@
               </div>
               <svg class="fe-item-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
             </button>`;
-          } else {
-            const extIcons = { '.pdf': '📄', '.txt': '📝', '.csv': '📊', '.xlsx': '📊', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️' };
-            const icon = extIcons[item.extension] || '📄';
-            listHtml += `<div class="fe-item" style="cursor:default;opacity:.7">
-              <div class="fe-item-icon file"><span style="font-size:16px">${icon}</span></div>
+            } else {
+              const extIcons = { '.pdf': 'DOC', '.txt': 'TXT', '.csv': 'CSV', '.xlsx': 'XLS', '.png': 'IMG', '.jpg': 'IMG', '.jpeg': 'IMG' };
+              const icon = extIcons[item.extension] || 'FILE';
+              listHtml += `<div class="fe-item" style="cursor:default;opacity:.7">
+              <div class="fe-item-icon file"><span style="font-size:12px; font-weight:bold; color:var(--text);">${icon}</span></div>
               <div class="fe-item-info">
                 <span class="fe-item-name">${esc(item.name)}</span>
                 <span class="fe-item-meta">${formatSize(item.size)}</span>
               </div>
             </div>`;
-          }
-        });
+            }
+          });
 
-        $('feList').innerHTML = listHtml;
-      } catch (e) {
-        $('feList').innerHTML = `<div class="fe-empty">⚠️ ${esc(e.message)}</div>`;
-      }
-    }
-
-    async function selectExplorerDir() {
-      const path = feCurrentDir;
-      closeExplorer();
-      const btn = $('pickerBtn'), lbl = $('pickerBtnLabel');
-      if (btn) { btn.disabled = true; if (lbl) lbl.textContent = 'Indexando…' }
-      $('searchBtn').disabled = true;
-      try {
-        showToast('Configurando directorio…', 10000);
-        await fetch('/api/system/database', { method: 'DELETE' });
-        const r2 = await fetch('/api/system/index-directory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) });
-        if (!r2.ok) { const err = await r2.json(); throw new Error(err.detail || 'Error indexando') }
-        const { dispatched } = await r2.json();
-        await dbSet(DIR_KEY, path);
-        updateDirUI(path);
-        resetSearchState();
-        showToast(`✓ Directorio configurado. ${dispatched} archivo${dispatched !== 1 ? 's' : ''} en proceso.`, 4000);
-      } catch (e) { showToast(`Error: ${e.message}`); $('pickerHint').style.display = 'flex' }
-      finally { if (btn) { btn.disabled = false; if (lbl) lbl.textContent = 'Elegir carpeta' } $('searchBtn').disabled = false }
-    }
-
-    function resetSearchState() { hasSearched = false; currentQuery = ''; $('searchInput').value = ''; showResultsState('hidden'); setHasSearched(false); $('queryExpansionInfo').style.display = 'none'; }
-
-    /* ── File manager ──────────────────────────────────────── */
-    function toggleFmMenu() { fmOpen = !fmOpen; $('fmPopover').style.display = fmOpen ? 'flex' : 'none'; $('fmBackdrop').style.display = fmOpen ? 'block' : 'none'; $('fmChevron').style.transform = fmOpen ? 'rotate(180deg)' : '' }
-    function closeFmMenu() { fmOpen = false; $('fmPopover').style.display = 'none'; $('fmBackdrop').style.display = 'none'; $('fmChevron').style.transform = '' }
-
-    /* ── Clear database ────────────────────────────────────── */
-    async function clearDatabase() {
-      closeFmMenu();
-      if (!confirm('¿Seguro que quieres eliminar TODOS los documentos indexados? Esta acción no se puede deshacer.')) return;
-      try {
-        showToast('Purgando base de datos…', 5000);
-        const r = await fetch('/api/system/database', { method: 'DELETE' });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        // Limpiar también el directorio almacenado en IndexedDB
-        await dbSet(DIR_KEY, '');
-        updateDirUI(null);
-        resetSearchState();
-        showToast('✓ Base de datos limpiada. Puedes elegir un nuevo directorio.');
-      } catch (e) { showToast(`Error: ${e.message}`) }
-    }
-
-    /* ── Search mode ───────────────────────────────────────── */
-    function setMode(m) { currentMode = m; $('modeDirectBtn').classList.toggle('active', m === 'direct'); $('modeDescBtn').classList.toggle('active', m === 'descriptive') }
-
-    /* ── Filter Dropdown ──────────────────────────────────── */
-    let filterMenuOpen = false;
-    function toggleFilterMenu(e, forceClose = false) {
-      if (e) e.stopPropagation();
-      filterMenuOpen = forceClose ? false : !filterMenuOpen;
-
-      const menu = $('filterMenu');
-      const backdrop = $('filterBackdrop');
-      const chevron = $('filterChevron');
-
-      menu.style.display = filterMenuOpen ? 'flex' : 'none';
-      backdrop.style.display = filterMenuOpen ? 'block' : 'none';
-      if (chevron) {
-        chevron.style.transform = filterMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-      }
-    }
-
-    function toggleFilter(checkbox) {
-      const t = checkbox.value;
-      const i = activeFilters.indexOf(t);
-      if (checkbox.checked && i === -1) {
-        activeFilters.push(t);
-      } else if (!checkbox.checked && i > -1) {
-        activeFilters.splice(i, 1);
+          $('feList').innerHTML = listHtml;
+        } catch (e) {
+          $('feList').innerHTML = `<div class="fe-empty">Error: ${esc(e.message)}</div>`;
+        }
       }
 
-      const badge = $('filterCountBadge');
-      if (activeFilters.length > 0) {
-        badge.style.display = 'inline-block';
-        badge.textContent = activeFilters.length;
-        $('filterBtn').classList.add('filter-btn--active');
-      } else {
-        badge.style.display = 'none';
-        $('filterBtn').classList.remove('filter-btn--active');
+      async function selectExplorerDir() {
+        const path = feCurrentDir;
+        closeExplorer();
+        const btn = $('pickerBtn'), lbl = $('pickerBtnLabel');
+        if (btn) { btn.disabled = true; if (lbl) lbl.textContent = 'Indexando…' }
+        $('searchBtn').disabled = true;
+        try {
+          showToast('Configurando directorio…', 10000);
+          await fetch('/api/system/database', { method: 'DELETE' });
+          const r2 = await fetch('/api/system/index-directory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) });
+          if (!r2.ok) { const err = await r2.json(); throw new Error(err.detail || 'Error indexando') }
+          const { dispatched } = await r2.json();
+          await dbSet(DIR_KEY, path);
+          updateDirUI(path);
+          resetSearchState();
+          showToast(`✓ Directorio configurado. ${dispatched} archivo${dispatched !== 1 ? 's' : ''} en proceso.`, 4000);
+        } catch (e) { showToast(`Error: ${e.message}`); $('pickerHint').style.display = 'flex' }
+        finally { if (btn) { btn.disabled = false; if (lbl) lbl.textContent = 'Elegir carpeta' } $('searchBtn').disabled = false }
       }
 
-      // Re-ejecutar búsqueda automáticamente si ya hay una query activa
-      if (currentQuery) performSearch(currentQuery);
-    }
+      function resetSearchState() { hasSearched = false; currentQuery = ''; $('searchInput').value = ''; showResultsState('hidden'); setHasSearched(false); $('queryExpansionInfo').style.display = 'none'; }
 
-    /* ── History ───────────────────────────────────────────── */
-    function saveHistory() { localStorage.setItem('meiga-history', JSON.stringify(searchHistory)) }
-    function addToHistory(q) { searchHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 8); saveHistory() }
-    function removeFromHistory(q) { searchHistory = searchHistory.filter(h => h !== q); saveHistory(); renderHistory() }
-    function clearAllHistory() { searchHistory = []; saveHistory(); renderHistory() }
-    function renderHistory() {
-      const list = $('recentList'); if (!list) return;
-      list.innerHTML = searchHistory.map((item, idx) => `
+      /* ── File manager ──────────────────────────────────────── */
+      function toggleFmMenu() { fmOpen = !fmOpen; $('fmPopover').style.display = fmOpen ? 'flex' : 'none'; $('fmBackdrop').style.display = fmOpen ? 'block' : 'none'; $('fmChevron').style.transform = fmOpen ? 'rotate(180deg)' : '' }
+      function closeFmMenu() { fmOpen = false; $('fmPopover').style.display = 'none'; $('fmBackdrop').style.display = 'none'; $('fmChevron').style.transform = '' }
+
+      /* ── Clear database ────────────────────────────────────── */
+      async function clearDatabase() {
+        closeFmMenu();
+        if (!confirm('¿Seguro que quieres eliminar TODOS los documentos indexados? Esta acción no se puede deshacer.')) return;
+        try {
+          showToast('Purgando base de datos…', 5000);
+          const r = await fetch('/api/system/database', { method: 'DELETE' });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          // Limpiar también el directorio almacenado en IndexedDB
+          await dbSet(DIR_KEY, '');
+          updateDirUI(null);
+          resetSearchState();
+          showToast('✓ Base de datos limpiada. Puedes elegir un nuevo directorio.');
+        } catch (e) { showToast(`Error: ${e.message}`) }
+      }
+
+      /* ── Search mode ───────────────────────────────────────── */
+      function setMode(m) { currentMode = m; $('modeDirectBtn').classList.toggle('active', m === 'direct'); $('modeDescBtn').classList.toggle('active', m === 'descriptive') }
+
+      /* ── Filter Dropdown ──────────────────────────────────── */
+      let filterMenuOpen = false;
+      function toggleFilterMenu(e, forceClose = false) {
+        if (e) e.stopPropagation();
+        filterMenuOpen = forceClose ? false : !filterMenuOpen;
+
+        const menu = $('filterMenu');
+        const backdrop = $('filterBackdrop');
+        const chevron = $('filterChevron');
+
+        menu.style.display = filterMenuOpen ? 'flex' : 'none';
+        backdrop.style.display = filterMenuOpen ? 'block' : 'none';
+        if (chevron) {
+          chevron.style.transform = filterMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      }
+
+      function toggleFilter(checkbox) {
+        const t = checkbox.value;
+        const i = activeFilters.indexOf(t);
+        if (checkbox.checked && i === -1) {
+          activeFilters.push(t);
+        } else if (!checkbox.checked && i > -1) {
+          activeFilters.splice(i, 1);
+        }
+
+        const badge = $('filterCountBadge');
+        if (activeFilters.length > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = activeFilters.length;
+          $('filterBtn').classList.add('filter-btn--active');
+        } else {
+          badge.style.display = 'none';
+          $('filterBtn').classList.remove('filter-btn--active');
+        }
+
+        // Re-ejecutar búsqueda automáticamente si ya hay una query activa
+        if (currentQuery) performSearch(currentQuery);
+      }
+
+      /* ── History ───────────────────────────────────────────── */
+      function saveHistory() { localStorage.setItem('meiga-history', JSON.stringify(searchHistory)) }
+      function addToHistory(q) { searchHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 8); saveHistory() }
+      function removeFromHistory(q) { searchHistory = searchHistory.filter(h => h !== q); saveHistory(); renderHistory() }
+      function clearAllHistory() { searchHistory = []; saveHistory(); renderHistory() }
+      function renderHistory() {
+        const list = $('recentList'); if (!list) return;
+        list.innerHTML = searchHistory.map((item, idx) => `
     <li class="recent-item" data-query="${esc(item).replace(/"/g, '&quot;')}">
       <svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
       <span class="item-text">${esc(item)}</span>
@@ -1797,64 +1864,93 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
       </button>
     </li>`).join('');
-      // Event delegation for clicks
-      list.onclick = function (e) {
-        const removeBtn = e.target.closest('[data-remove]');
-        if (removeBtn) { e.stopPropagation(); removeFromHistory(removeBtn.dataset.remove); return; }
-        const li = e.target.closest('[data-query]');
-        if (li) selectHistory(li.dataset.query);
-      };
-      $('recentSection').style.display = (!hasSearched && searchHistory.length > 0) ? 'block' : 'none';
-    }
-    function selectHistory(q) { $('searchInput').value = q; onSearchSubmit() }
+        // Event delegation for clicks
+        list.onclick = function (e) {
+          const removeBtn = e.target.closest('[data-remove]');
+          if (removeBtn) { e.stopPropagation(); removeFromHistory(removeBtn.dataset.remove); return; }
+          const li = e.target.closest('[data-query]');
+          if (li) selectHistory(li.dataset.query);
+        };
+        $('recentSection').style.display = (!hasSearched && searchHistory.length > 0) ? 'block' : 'none';
+      }
+      function selectHistory(q) { $('searchInput').value = q; onSearchSubmit() }
 
-    /* ── Search ────────────────────────────────────────────── */
-    function onSearchSubmit() {
-      const q = $('searchInput').value.trim(); if (!q) return;
-      currentQuery = q; addToHistory(q); setHasSearched(true); performSearch(q);
-    }
-    async function performSearch(q) {
-      showResultsState('loading');
-      // Ocultar query expansion info al inicio de nueva búsqueda
-      $('queryExpansionInfo').style.display = 'none';
-      try {
-        const p = new URLSearchParams({ q, top_k: 10, expand: currentMode === 'descriptive' });
-        activeFilters.forEach(t => p.append('type', t));
-        const r = await fetch(`/api/search?${p}`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        if (!data.results || data.results.length === 0) { $('emptyText').innerHTML = `No se encontraron documentos para <strong>"${esc(q)}"</strong>`; showResultsState('empty'); return }
-        const n = data.total;
-        $('resultsMeta').textContent = `${n} resultado${n !== 1 ? 's' : ''} encontrado${n !== 1 ? 's' : ''}`;
-        $('resultsList').innerHTML = data.results.map(renderCard).join('');
-        
-        // 🔍 Mostrar información de Query Expansion si se usó el LLM
-        if (data.searchMode === 'descriptive') {
-          const rawExpanded = data.expandedQuery || '';
-          const keywords = rawExpanded.split(',').map(k => k.trim()).filter(k => k);
-          if (keywords.length > 0) {
-            const keywordsHtml = keywords.map(k => `<mark>${esc(k)}</mark>`).join(' ');
-            $('expandedKeywords').innerHTML = `Keywords generadas: ${keywordsHtml}`;
-          } else {
-            $('expandedKeywords').innerHTML = `<span style="opacity:.6">Sin keywords extraídas</span>`;
+      /* ── Search and Pagination ──────────────────────────────── */
+      let allResults = [];
+      let currentResultsPage = 0;
+      const RESULTS_PER_PAGE = 10;
+
+      function onSearchSubmit() {
+        const q = $('searchInput').value.trim(); if (!q) return;
+        currentQuery = q; addToHistory(q); setHasSearched(true); performSearch(q);
+      }
+
+      async function performSearch(q) {
+        showResultsState('loading');
+        // Ocultar query expansion info al inicio de nueva búsqueda
+        $('queryExpansionInfo').style.display = 'none';
+        try {
+          const p = new URLSearchParams({ q, top_k: 10, expand: currentMode === 'descriptive' });
+          activeFilters.forEach(t => p.append('type', t));
+          const r = await fetch(`/api/search?${p}`);
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const data = await r.json();
+          if (!data.results || data.results.length === 0) { $('emptyText').innerHTML = `No se encontraron documentos para <strong>"${esc(q)}"</strong>`; showResultsState('empty'); return; }
+          const n = data.total;
+          $('resultsMeta').textContent = `${n} resultado${n !== 1 ? 's' : ''} encontrado${n !== 1 ? 's' : ''}`;
+          $('resultsList').innerHTML = data.results.map(renderCard).join('');
+
+          // 🔍 Mostrar información de Query Expansion si se usó el LLM
+          if (data.searchMode === 'descriptive') {
+            const rawExpanded = data.expandedQuery || '';
+            const keywords = rawExpanded.split(',').map(k => k.trim()).filter(k => k);
+            if (keywords.length > 0) {
+              const keywordsHtml = keywords.map(k => `<mark>${esc(k)}</mark>`).join(' ');
+              $('expandedKeywords').innerHTML = `Keywords generadas: ${keywordsHtml}`;
+            } else {
+              $('expandedKeywords').innerHTML = `<span style="opacity:.6">Sin keywords extraídas</span>`;
+            }
+            $('queryExpansionInfo').style.display = 'flex';
           }
-          $('queryExpansionInfo').style.display = 'flex';
-        }
-        
-        showResultsState('results');
-      } catch (e) { $('errorText').textContent = e.message; showResultsState('error') }
-    }
 
-    /* ── Result card ───────────────────────────────────────── */
-    function renderCard(r) {
-      const doc = r.document, frag = r.fragment, score = Math.round(r.relevanceScore * 100);
-      const fragHtml = applyHighlights(esc(frag.text), frag.highlights || []);
-      const tagsHtml = (doc.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
-      const footer = [];
-      if (doc.author) footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${esc(doc.author)}</span>`);
-      footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${mediumDate(doc.updatedAt)}</span>`);
-      if (doc.tags && doc.tags.length) footer.push(`<div class="flex gap-1 flex-wrap">${tagsHtml}</div>`);
-      return `<div class="result-card" role="button" tabindex="0" aria-label="${esc(doc.title)}" onclick="openDocDetail('${esc(doc.source).replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter')this.click()" style="cursor:pointer">
+          showResultsState('results');
+        } catch (e) { $('errorText').textContent = e.message; showResultsState('error') }
+      }
+
+      function renderResultsPage(append = false) {
+        const start = (currentResultsPage - 1) * RESULTS_PER_PAGE;
+        const end = start + RESULTS_PER_PAGE;
+        const pageResults = allResults.slice(start, end);
+        const html = pageResults.map(renderCard).join('');
+
+        const list = $('resultsList');
+        if (append) {
+          list.insertAdjacentHTML('beforeend', html);
+        } else {
+          list.innerHTML = html;
+        }
+
+        const pContainer = $('paginationContainer');
+        if (pContainer) {
+          pContainer.style.display = end < allResults.length ? 'flex' : 'none';
+        }
+      }
+
+      function loadMoreResults() {
+        currentResultsPage++;
+        renderResultsPage(true);
+      }
+
+      /* ── Result card ───────────────────────────────────────── */
+      function renderCard(r) {
+        const doc = r.document, frag = r.fragment, score = Math.round(r.relevanceScore * 100);
+        const fragHtml = applyHighlights(esc(frag.text), frag.highlights || []);
+        const tagsHtml = (doc.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('');
+        const footer = [];
+        if (doc.author) footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${esc(doc.author)}</span>`);
+        footer.push(`<span style="font-size:.75rem;color:rgba(20,33,61,.55)">${mediumDate(doc.updatedAt)}</span>`);
+        if (doc.tags && doc.tags.length) footer.push(`<div class="flex gap-1 flex-wrap">${tagsHtml}</div>`);
+        return `<div class="result-card" role="button" tabindex="0" aria-label="${esc(doc.title)}" onclick="openDocDetail('${esc(doc.source).replace(/'/g, "\\'")}')" onkeydown="if(event.key==='Enter')this.click()" style="cursor:pointer">
     <div class="flex items-start justify-between gap-3 mb-2">
       <div class="flex flex-col gap-0.5 min-w-0">
         <span class="doc-type">${esc(doc.type.toUpperCase())}</span>
@@ -1865,143 +1961,143 @@
     <p class="fragment">${fragHtml}</p>
     <div class="flex items-center gap-2 flex-wrap">${footer.join('')}</div>
   </div>`;
-    }
-    function applyHighlights(t, hl) {
-      if (!hl || !hl.length) return t;
-      let out = '', c = 0;
-      [...hl].sort((a, b) => a.start - b.start).forEach(h => { out += t.slice(c, h.start) + `<mark>${t.slice(h.start, h.end)}</mark>`; c = h.end });
-      return out + t.slice(c);
-    }
-    /* ── Document Detail ──────────────────────────────────── */
-    async function openDocDetail(source) {
-      $('ddModal').style.display = 'flex';
-      $('ddTitle').textContent = 'Cargando…';
-      $('ddMeta').innerHTML = '';
-      $('ddBody').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
-      $('ddSource').textContent = source;
-
-      try {
-        const r = await fetch(`/api/document?source=${encodeURIComponent(source)}`);
-        if (!r.ok) throw new Error('Documento no encontrado');
-        const doc = await r.json();
-
-        $('ddTitle').textContent = doc.title;
-
-        // Metadata badges
-        const extIcons = { '.pdf': '📄', '.txt': '📝', '.csv': '📊', '.xlsx': '📊', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️' };
-        let metaHtml = '';
-        metaHtml += `<span class="dd-badge cat">${esc(doc.category)}</span>`;
-        metaHtml += `<span class="dd-badge ext">${doc.extension.toUpperCase().replace('.', '')}</span>`;
-        metaHtml += `<span class="dd-badge info">${doc.wordCount.toLocaleString()} palabras</span>`;
-        metaHtml += `<span class="dd-badge info">${doc.totalChunks} chunks</span>`;
-        if (doc.fileSize) metaHtml += `<span class="dd-badge info">${formatSize(doc.fileSize)}</span>`;
-
-        // Extended rich metadata
-        if (doc.author) metaHtml += `<span class="dd-badge">Autor: ${esc(doc.author)}</span>`;
-        if (doc.creator) metaHtml += `<span class="dd-badge">Empresa: ${esc(doc.creator)}</span>`;
-        if (doc.subject) metaHtml += `<span class="dd-badge">Asunto: ${esc(doc.subject)}</span>`;
-        if (doc.producer) metaHtml += `<span class="dd-badge">Productor: ${esc(doc.producer)}</span>`;
-        if (doc.keywords) metaHtml += `<span class="dd-badge">Keywords: ${esc(doc.keywords)}</span>`;
-
-        $('ddMeta').innerHTML = metaHtml;
-
-        // Render documento original embebido o texto crudo
-        const url = `/api/document/view?source=${encodeURIComponent(source)}`;
-        const ext = (doc.extension || '').toLowerCase();
-        const isImg = /\.(png|jpg|jpeg|gif)$/i.test(ext);
-        const isPdf = /\.pdf$/i.test(ext);
-
-        if (isImg) {
-          $('ddBody').innerHTML = `<div style="text-align:center;padding:20px;background:#f5f5f5;height:100%;min-height:70vh;display:flex;align-items:center;justify-content:center;"><img src="${url}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>`;
-          $('ddBody').style.padding = '0';
-        } else if (isPdf) {
-          $('ddBody').innerHTML = `<iframe src="${url}" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:8px;background:#f5f5f5;"></iframe>`;
-          $('ddBody').style.padding = '0';
-        } else {
-          // Fallback para CSV, TXT, XLSX (se muestran como texto extraído para evitar descargas)
-          $('ddBody').innerHTML = `<div style="white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#f8f9fa;padding:24px;border-radius:8px;border:1px solid #e2e8f0;overflow-x:auto;font-size:0.9rem;line-height:1.6;color:#334155;height:100%;min-height:70vh;">${esc(doc.fullText)}</div>`;
-          $('ddBody').style.padding = '20px';
-        }
-
-      } catch (e) {
-        $('ddBody').innerHTML = `<div class="fe-empty">⚠️ ${esc(e.message)}</div>`;
       }
-    }
+      function applyHighlights(t, hl) {
+        if (!hl || !hl.length) return t;
+        let out = '', c = 0;
+        [...hl].sort((a, b) => a.start - b.start).forEach(h => { out += t.slice(c, h.start) + `<mark>${t.slice(h.start, h.end)}</mark>`; c = h.end });
+        return out + t.slice(c);
+      }
+      /* ── Document Detail ──────────────────────────────────── */
+      async function openDocDetail(source) {
+        $('ddModal').style.display = 'flex';
+        $('ddTitle').textContent = 'Cargando…';
+        $('ddMeta').innerHTML = '';
+        $('ddBody').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
+        $('ddSource').textContent = source;
 
-    function closeDocDetail() {
-      $('ddModal').style.display = 'none';
-    }
+        try {
+          const r = await fetch(`/api/document?source=${encodeURIComponent(source)}`);
+          if (!r.ok) throw new Error('Documento no encontrado');
+          const doc = await r.json();
 
-    /* ── Drag and Drop Upload ──────────────────────────────── */
-    let dragCounter = 0;
+          $('ddTitle').textContent = doc.title;
 
-    window.addEventListener('dragenter', (e) => {
-      e.preventDefault();
-      // Solo activamos D&D si ya hay un rootDir configurado
-      if (!rootDirPath) return;
-      dragCounter++;
-      $('dragOverlay').classList.add('active');
-    });
+          // Metadata badges
+          const extIcons = { '.pdf': '📄', '.txt': '📝', '.csv': '📊', '.xlsx': '📊', '.png': '🖼️', '.jpg': '🖼️', '.jpeg': '🖼️' };
+          let metaHtml = '';
+          metaHtml += `<span class="dd-badge cat">${esc(doc.category)}</span>`;
+          metaHtml += `<span class="dd-badge ext">${doc.extension.toUpperCase().replace('.', '')}</span>`;
+          metaHtml += `<span class="dd-badge info">${doc.wordCount.toLocaleString()} palabras</span>`;
+          metaHtml += `<span class="dd-badge info">${doc.totalChunks} chunks</span>`;
+          if (doc.fileSize) metaHtml += `<span class="dd-badge info">${formatSize(doc.fileSize)}</span>`;
 
-    window.addEventListener('dragleave', (e) => {
-      e.preventDefault();
-      if (!rootDirPath) return;
-      dragCounter--;
-      if (dragCounter === 0) {
+          // Extended rich metadata
+          if (doc.author) metaHtml += `<span class="dd-badge">Autor: ${esc(doc.author)}</span>`;
+          if (doc.creator) metaHtml += `<span class="dd-badge">Empresa: ${esc(doc.creator)}</span>`;
+          if (doc.subject) metaHtml += `<span class="dd-badge">Asunto: ${esc(doc.subject)}</span>`;
+          if (doc.producer) metaHtml += `<span class="dd-badge">Productor: ${esc(doc.producer)}</span>`;
+          if (doc.keywords) metaHtml += `<span class="dd-badge">Keywords: ${esc(doc.keywords)}</span>`;
+
+          $('ddMeta').innerHTML = metaHtml;
+
+          // Render documento original embebido o texto crudo
+          const url = `/api/document/view?source=${encodeURIComponent(source)}`;
+          const ext = (doc.extension || '').toLowerCase();
+          const isImg = /\.(png|jpg|jpeg|gif)$/i.test(ext);
+          const isPdf = /\.pdf$/i.test(ext);
+
+          if (isImg) {
+            $('ddBody').innerHTML = `<div style="text-align:center;padding:20px;background:#f5f5f5;height:100%;min-height:70vh;display:flex;align-items:center;justify-content:center;"><img src="${url}" style="max-width:100%;max-height:80vh;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>`;
+            $('ddBody').style.padding = '0';
+          } else if (isPdf) {
+            $('ddBody').innerHTML = `<iframe src="${url}" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:8px;background:#f5f5f5;"></iframe>`;
+            $('ddBody').style.padding = '0';
+          } else {
+            // Fallback para CSV, TXT, XLSX (se muestran como texto extraído para evitar descargas)
+            $('ddBody').innerHTML = `<div style="white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;background:#f8f9fa;padding:24px;border-radius:8px;border:1px solid #e2e8f0;overflow-x:auto;font-size:0.9rem;line-height:1.6;color:#334155;height:100%;min-height:70vh;">${esc(doc.fullText)}</div>`;
+            $('ddBody').style.padding = '20px';
+          }
+
+        } catch (e) {
+          $('ddBody').innerHTML = `<div class="fe-empty">⚠️ ${esc(e.message)}</div>`;
+        }
+      }
+
+      function closeDocDetail() {
+        $('ddModal').style.display = 'none';
+      }
+
+      /* ── Drag and Drop Upload ──────────────────────────────── */
+      let dragCounter = 0;
+
+      window.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        // Solo activamos D&D si ya hay un rootDir configurado
+        if (!rootDirPath) return;
+        dragCounter++;
+        $('dragOverlay').classList.add('active');
+      });
+
+      window.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (!rootDirPath) return;
+        dragCounter--;
+        if (dragCounter === 0) {
+          $('dragOverlay').classList.remove('active');
+        }
+      });
+
+      window.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Obligatorio para permitir el drop
+      });
+
+      window.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        if (!rootDirPath) return;
+
+        dragCounter = 0;
         $('dragOverlay').classList.remove('active');
-      }
-    });
 
-    window.addEventListener('dragover', (e) => {
-      e.preventDefault(); // Obligatorio para permitir el drop
-    });
+        const files = e.dataTransfer.files;
+        if (!files || files.length === 0) return;
 
-    window.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      if (!rootDirPath) return;
+        const file = files[0]; // Solo soportamos uno por ahora
+        await uploadDocument(file);
+      });
 
-      dragCounter = 0;
-      $('dragOverlay').classList.remove('active');
+      async function uploadDocument(file) {
+        showToast(`Subiendo ${esc(file.name)}...`, 5000);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
 
-      const files = e.dataTransfer.files;
-      if (!files || files.length === 0) return;
+          const r = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
 
-      const file = files[0]; // Solo soportamos uno por ahora
-      await uploadDocument(file);
-    });
+          if (!r.ok) {
+            const err = await r.json();
+            throw new Error(err.detail || 'Error en la subida');
+          }
 
-    async function uploadDocument(file) {
-      showToast(`Subiendo ${esc(file.name)}...`, 5000);
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
+          const data = await r.json();
+          showToast(`✓ ${esc(file.name)} subido. Indexando en segundo plano...`, 4000);
 
-        const r = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!r.ok) {
-          const err = await r.json();
-          throw new Error(err.detail || 'Error en la subida');
+          // Opcional: podríamos hacer polling al /api/status/{task_id} para avisar 
+          // cuando termine, pero por ahora un toast de éxito es suficiente.
+        } catch (e) {
+          showToast(`Error al subir: ${e.message}`);
         }
-
-        const data = await r.json();
-        showToast(`✓ ${esc(file.name)} subido. Indexando en segundo plano...`, 4000);
-
-        // Opcional: podríamos hacer polling al /api/status/{task_id} para avisar 
-        // cuando termine, pero por ahora un toast de éxito es suficiente.
-      } catch (e) {
-        showToast(`Error al subir: ${e.message}`);
       }
-    }
 
-    /* ── Event listeners ───────────────────────────────────── */
-    $('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') onSearchSubmit() });
+      /* ── Event listeners ───────────────────────────────────── */
+      $('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') onSearchSubmit() });
 
-    /* ── Boot ──────────────────────────────────────────────── */
-    (async () => { renderHistory(); await loadStoredDirectory() })();
-  </script>
+      /* ── Boot ──────────────────────────────────────────────── */
+      (async () => { renderHistory(); await loadStoredDirectory() })();
+    </script>
 </body>
 
 </html>
