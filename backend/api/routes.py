@@ -258,10 +258,11 @@ async def view_document(source: str = Query(..., description="Ruta del archivo f
     """
     file_path = Path(source)
     
-    # Fallback para desarrollo local: si la BD (en Docker) guardó '/app/datasets/archivo.pdf'
-    # pero FastAPI se está ejecutando en el Mac, buscar en '../datasets/archivo.pdf'
+    # Fallback para desarrollo local: si la BD (en Docker) guardó '/app/datasets/docs/archivo.pdf'
+    # pero FastAPI se está ejecutando en el Mac, buscar en '../datasets/docs/archivo.pdf'
     if not file_path.exists() and str(file_path).startswith("/app/datasets/"):
-        local_path = Path("../datasets") / file_path.name
+        relative_path = str(file_path)[len("/app/datasets/"):]
+        local_path = Path("../datasets") / relative_path
         if local_path.exists():
             file_path = local_path
 
@@ -288,7 +289,8 @@ async def get_document_detail(source: str = Query(..., description="Ruta del arc
         # Obtener tamaño del archivo si existe (incluyendo fallback local)
         file_path = Path(source)
         if not file_path.exists() and str(file_path).startswith("/app/datasets/"):
-            local_path = Path("../datasets") / file_path.name
+            relative_path = str(file_path)[len("/app/datasets/"):]
+            local_path = Path("../datasets") / relative_path
             if local_path.exists():
                 file_path = local_path
                 
