@@ -18,6 +18,7 @@ Uso:
 """
 
 import uuid
+import asyncio
 from abc import ABC, abstractmethod
 
 from qdrant_client import QdrantClient
@@ -200,7 +201,7 @@ class VectorDBService:
 
         return len(points)
 
-    def search(
+    async def search(
         self, 
         query: str, 
         top_k: int = 5,
@@ -217,11 +218,13 @@ class VectorDBService:
         Returns:
             Lista de dicts con: text, score, source, y otros metadatos.
         """
-        # Asegurarse de que la colección existe (evita errores 404 si se busca antes de subir nada)
-        self.ensure_collection()
+        # Asegurarse de que la colección existe
+        # (Idealmente en contexto async esto debería delegarse a un thread también, pero es muy rápido)
+        await asyncio.to_thread(self.ensure_collection)
 
-        # Vectorizar la query
-        query_embedding = self.embedder.embed([query])[0]
+        # Vectorizar la query (CPU-Bound, bloquea el event loop. Lo mandamos a un thread)
+        embeddings = await asyncio.to_thread(self.embedder.embed, [query])
+        query_embedding = embeddings[0]
 
         # Construir filtros opcionales dinámicamente
         query_filter = None
@@ -233,14 +236,12 @@ class VectorDBService:
                 if not value:
                     continue
                     
-                # Si es una lista (ej: múltiples tipos de archivo o categorías)
                 if isinstance(value, list):
                     should_conditions = [
                         FieldCondition(key=key, match=MatchValue(value=v))
                         for v in value
                     ]
                     must_conditions.append(Filter(should=should_conditions))
-                # Si es un valor simple
                 else:
                     must_conditions.append(
                         FieldCondition(key=key, match=MatchValue(value=value))
@@ -249,8 +250,9 @@ class VectorDBService:
             if must_conditions:
                 query_filter = Filter(must=must_conditions)
 
-        # Buscar en Qdrant
-        results = self.client.query_points(
+        # Buscar en Qdrant (I/O-Bound síncrono, lo mandamos a un thread)
+        results = await asyncio.to_thread(
+            self.client.query_points,
             collection_name=self.collection_name,
             query=query_embedding,
             query_filter=query_filter,

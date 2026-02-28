@@ -149,7 +149,7 @@ async def search_documents(
             filters["extension"] = type
 
         vdb = VectorDBService()
-        raw_results = vdb.search(query=q, top_k=top_k)
+        raw_results = await vdb.search(query=q, top_k=top_k)
 
         # Transformar al formato SearchResponse del frontend
         results = []
