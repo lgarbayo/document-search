@@ -224,13 +224,23 @@ async def search_documents(
 async def pick_directory():
     """
     En modo Docker no hay picker nativo del SO.
-    Devuelve la ruta del directorio de datasets pre-montado.
+    Devuelve la ruta por defecto y lista de directorios disponibles.
     """
     datasets_path = "/app/datasets"
     if not os.path.isdir(datasets_path):
         datasets_path = "/app/uploads"
 
-    return {"path": datasets_path}
+    # Listar directorios disponibles dentro de /app
+    available = []
+    for name in ["datasets", "uploads"]:
+        full = f"/app/{name}"
+        if os.path.isdir(full):
+            # Contar archivos soportados
+            count = sum(1 for _, _, files in os.walk(full) for f in files
+                       if Path(f).suffix.lower() in SUPPORTED_EXTENSIONS)
+            available.append(f"{full} ({count} archivos)")
+
+    return {"path": datasets_path, "available": available}
 
 
 from pydantic import BaseModel
