@@ -234,13 +234,12 @@ async def search_documents(
         extracted_keywords = None
         use_expansion = expand
 
-        # Búsqueda inicial con query normalizada
-        raw_results = await vdb.search(
-            query=q_normalized, 
-            top_k=top_k, 
-            filters=filters if filters else None, 
-            range_filters=range_filters if range_filters else None,
-            exact_filters=exact_filters if exact_filters else None
+        # Búsqueda inicial HÍBRIDA: semántica + léxica en paralelo
+        raw_results = await vdb.hybrid_search(
+            query=q_normalized,
+            query_text=q_normalized,
+            top_k=top_k,
+            filters=filters if filters else None,
         )
 
         # Activar extracción automáticamente si no hay resultados

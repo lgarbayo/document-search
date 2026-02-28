@@ -30,7 +30,9 @@ from qdrant_client.models import (
     FieldCondition,
     MatchValue,
     MatchText,
-    Range,
+    TextIndexParams,
+    TokenizerType,
+    PayloadSchemaType,
 )
 
 from core.config import settings
@@ -150,6 +152,8 @@ class VectorDBService:
         """
         Crea la colección en Qdrant si no existe.
         Si ya existe, no hace nada (idempotente).
+        También asegura que el text index sobre el campo 'text' esté creado
+        para habilitar búsquedas léxicas (hybrid search).
         """
         collections = self.client.get_collections().collections
         existing_names = [c.name for c in collections]
@@ -162,6 +166,23 @@ class VectorDBService:
                     distance=Distance.COSINE,
                 ),
             )
+
+        # Crear text index sobre el campo 'text' para búsqueda léxica
+        # Si ya existe, Qdrant lo ignora silenciosamente (idempotente)
+        try:
+            self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="text",
+                field_schema=TextIndexParams(
+                    type="text",
+                    tokenizer=TokenizerType.WORD,
+                    min_token_len=2,
+                    max_token_len=40,
+                    lowercase=True,
+                ),
+            )
+        except Exception:
+            pass  # Índice ya existe o no se pudo crear
 
     def upsert(self, chunks: list[str], metadata: list[dict]) -> int:
         """
@@ -303,6 +324,142 @@ class VectorDBService:
             })
 
         return formatted
+
+    async def hybrid_search(
+        self,
+        query: str,
+        query_text: str,
+        top_k: int = 5,
+        filters: dict = None,
+    ) -> list[dict]:
+        """
+        Búsqueda híbrida: semántica + léxica en paralelo con fusión de resultados.
+
+        Ejecuta dos búsquedas simultáneas:
+          1. Semántica pura (vectores)
+          2. Semántica + filtro léxico (MatchText sobre 'text')
+
+        Los resultados que coinciden léxicamente reciben un boost de score (×1.15),
+        lo que los sube al top del ranking sin eliminar resultados puramente semánticos.
+
+        Args:
+            query: Texto de búsqueda (se vectoriza).
+            query_text: Texto para el filtro léxico (palabras clave a buscar literalmente).
+            top_k: Número de resultados finales.
+            filters: Filtros adicionales de metadatos (category, extension, etc.).
+        """
+        await asyncio.to_thread(self.ensure_collection)
+
+        # Vectorizar la query una sola vez
+        embeddings = await asyncio.to_thread(self.embedder.embed, [query])
+        query_embedding = embeddings[0]
+
+        # Construir filtros base (category, extension, etc.)
+        base_conditions = []
+        if filters:
+            for key, value in filters.items():
+                if not value:
+                    continue
+                if isinstance(value, list):
+                    for v in value:
+                        base_conditions.append(FieldCondition(key=key, match=MatchValue(value=v)))
+                else:
+                    base_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
+
+        # Filtro para búsqueda semántica pura
+        semantic_filter = Filter(should=base_conditions) if base_conditions else None
+
+        # Filtro para búsqueda léxica: base + MatchText
+        lexical_conditions = list(base_conditions)  # copia
+        lexical_conditions.append(
+            FieldCondition(key="text", match=MatchText(text=query_text))
+        )
+        # Si hay filtros base, la palabra debe aparecer Y coincidir con algún filtro
+        # Si no hay filtros base, solo la palabra
+        if base_conditions:
+            lexical_filter = Filter(
+                must=[FieldCondition(key="text", match=MatchText(text=query_text))],
+                should=base_conditions,
+            )
+        else:
+            lexical_filter = Filter(
+                must=[FieldCondition(key="text", match=MatchText(text=query_text))]
+            )
+
+        # Ejecutar ambas búsquedas en paralelo
+        semantic_task = asyncio.to_thread(
+            self.client.query_points,
+            collection_name=self.collection_name,
+            query=query_embedding,
+            query_filter=semantic_filter,
+            limit=top_k,
+            with_payload=True,
+        )
+        lexical_task = asyncio.to_thread(
+            self.client.query_points,
+            collection_name=self.collection_name,
+            query=query_embedding,
+            query_filter=lexical_filter,
+            limit=top_k,
+            with_payload=True,
+        )
+
+        semantic_results, lexical_results = await asyncio.gather(
+            semantic_task, lexical_task
+        )
+
+        # Fusionar resultados con boost léxico
+        LEXICAL_BOOST = 1.15
+
+        # Indexar resultados léxicos por texto para lookup rápido
+        lexical_texts = set()
+        for point in lexical_results.points:
+            lexical_texts.add(point.payload.get("text", ""))
+
+        seen_texts = set()
+        merged = []
+
+        # Procesar resultados semánticos (aplicar boost si también son léxicos)
+        for point in semantic_results.points:
+            text = point.payload.get("text", "")
+            if text in seen_texts:
+                continue
+            seen_texts.add(text)
+
+            score = point.score
+            if text in lexical_texts:
+                score = min(score * LEXICAL_BOOST, 1.0)  # Cap a 1.0
+
+            merged.append({
+                "text": text,
+                "score": score,
+                "source": point.payload.get("source", "unknown"),
+                "category": point.payload.get("category", "General"),
+                "extension": point.payload.get("extension", ""),
+                "page": point.payload.get("page", None),
+                "chunk_index": point.payload.get("chunk_index", None),
+            })
+
+        # Añadir resultados léxicos que no estaban en semánticos
+        for point in lexical_results.points:
+            text = point.payload.get("text", "")
+            if text in seen_texts:
+                continue
+            seen_texts.add(text)
+
+            merged.append({
+                "text": text,
+                "score": point.score * LEXICAL_BOOST,
+                "source": point.payload.get("source", "unknown"),
+                "category": point.payload.get("category", "General"),
+                "extension": point.payload.get("extension", ""),
+                "page": point.payload.get("page", None),
+                "chunk_index": point.payload.get("chunk_index", None),
+            })
+
+        # Reordenar por score fusionado y truncar
+        merged.sort(key=lambda r: r["score"], reverse=True)
+        return merged[:top_k]
 
     async def get_by_source(self, source: str) -> list[dict]:
         """
