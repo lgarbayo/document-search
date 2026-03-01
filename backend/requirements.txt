@@ -5,7 +5,7 @@ python-multipart==0.0.12
 
 # Async Tasks
 celery[redis]==5.4.0
-redis==5.1.1
+redis==7.2.1
 
 # Vector DB
 qdrant-client==1.11.3
