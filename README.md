@@ -53,6 +53,7 @@ MeigaSearch resuelve el problema de búsqueda a través de documentos corporativ
 | :--- | :--- | :--- |
 | `admin` | `admin123` | Administrador |
 | `empleado` | `normal123` | Normal |
+| `lector` | `lector123` | Lector |
 
 ## ⚙️ Configuración del LLM
 
@@ -86,56 +87,34 @@ Proveedores soportados: `local`, `openai`, `gemini`, `claude`.
 
 ```mermaid
 graph TD
-    classDef frontend fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef backend fill:#fff3e0,stroke:#e65100,stroke-width:2px;
-    classDef workers fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
-    classDef database fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
-    classDef extractor fill:#fce4ec,stroke:#880e4f,stroke-width:2px;
-
-    subgraph "Frontend (Interfaz de Usuario)"
-        UI["HTML5 / JS Vanilla"]:::frontend
-        CSS["Glassmorphism CSS"]:::frontend
-        MD["Marked.js (Markdown)"]:::frontend
+    subgraph Frontend ["💻 Frontend (SPA)"]
+        UI["Vanilla JS + CSS Glassmorphism<br/><b>Marked.js</b> (Markdown)"]
     end
 
-    subgraph "Backend (Cerebro API)"
-        FAST["FastAPI (Python 3.11+)"]:::backend
-        PYD["Pydantic v2 (Validación)"]:::backend
-        JWT["JWT + Bcrypt (Seguridad)"]:::backend
+    subgraph Backend ["⚙️ API & Inteligencia"]
+        FAST["<b>FastAPI</b> (Python 3.11+)<br/>JWT + Pydantic v2"]
+        AI["<b>AI Engine:</b> LLMs & Embeddings<br/>(OpenAI, Gemini, Local)"]
     end
 
-    subgraph "Procesamiento Asíncrono"
-        RED["Redis (Queue/Broker)"]:::workers
-        CEL["Celery (Workers)"]:::workers
+    subgraph Async ["⚡ Procesamiento & Ingesta"]
+        WORK["<b>Celery + Redis</b><br/>(Pipeline asíncrono)"]
+        EXT["<b>Extractores:</b> OCR (Tesseract)<br/>ExifTool + PyMuPDF"]
     end
 
-    subgraph "Inteligencia & Búsqueda"
-        QDR[("Qdrant (Vector DB)")]:::database
-        SENT["Sentence-Transformers (Embeddings)"]:::database
-        LLM["LLMs (OpenAI, Gemini, Claude, local)"]:::database
-    end
+    VDB[("🔍 Vector DB<br/><b>Qdrant</b>")]
 
-    subgraph "Extracción & OCR"
-        EXIF["ExifTool (Metadatos)"]:::extractor
-        TESS["Tesseract (OCR)"]:::extractor
-        PDF["PyMuPDF (Docs)"]:::extractor
-    end
+    UI <--> FAST
+    FAST <--> AI
+    FAST <--> VDB
+    FAST --> WORK
+    WORK --> EXT
+    EXT --> VDB
 
-    %% Conexiones
-    UI -- "REST API (JSON)" --> FAST
-    UI --- CSS
-    UI --- MD
-
-    FAST -- "Encola tareas" --> RED
-    RED <--> CEL
-    
-    CEL -- "Usa extractores" --> PDF & EXIF & TESS
-    PDF & EXIF & TESS -- "Genera texto" --> SENT
-    SENT -- "Vectores" --> QDR
-    
-    FAST -- "Búsqueda Híbrida" --> QDR
-    FAST -- "Chat RAG" --> LLM
-    LLM -- "Respuesta Markdown" --> MD
+    %% Estilos
+    style Frontend fill:#e1f5fe,stroke:#01579b
+    style Backend fill:#fff3e0,stroke:#e65100
+    style Async fill:#f3e5f5,stroke:#4a148c
+    style VDB fill:#e8f5e9,stroke:#1b5e20
 ```
 
 > [!NOTE]
