@@ -857,15 +857,27 @@ async def clear_database():
 def _find_highlights(text: str, query: str) -> list[dict]:
     """
     Busca ocurrencias de cada palabra de la query en el texto para resaltado.
-    Divide la query en palabras y busca cada una individualmente.
-    Filtra palabras muy cortas (< 3 chars) para evitar ruido.
+    Divide la query en palabras, filtra stop words y palabras cortas.
     Devuelve lista de {start, end} con las posiciones.
     """
+    STOP_WORDS = {
+        "el", "la", "los", "las", "un", "una", "unos", "unas",
+        "de", "del", "al", "en", "por", "con", "para", "sin",
+        "sobre", "entre", "hacia", "desde", "como", "que", "se",
+        "su", "sus", "lo", "es", "son", "no", "si", "ya", "más",
+        "muy", "pero", "este", "esta", "estos", "estas", "ese",
+        "esa", "esos", "esas", "todo", "toda", "todos", "todas",
+        "otro", "otra", "otros", "otras",
+        "the", "of", "and", "in", "to", "for", "is", "on",
+        "with", "at", "by", "an", "or", "not", "are", "was",
+        "be", "has", "had", "its", "from", "this", "that", "which", "also",
+    }
+
     highlights = []
     text_lower = text.lower()
 
-    # Dividir query en palabras, filtrar muy cortas
-    words = [w for w in query.lower().split() if len(w) >= 3]
+    # Dividir query en palabras, filtrar stop words y muy cortas
+    words = [w for w in query.lower().split() if len(w) >= 3 and w not in STOP_WORDS]
     if not words:
         # Fallback: buscar la query completa
         words = [query.lower()] if query.strip() else []

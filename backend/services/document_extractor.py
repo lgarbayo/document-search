@@ -399,6 +399,20 @@ def chunk_text(text: str, size: int = 1000, overlap: int = 200) -> list[str]:
     return chunks
 
 
+STOP_WORDS_ES_EN = {
+    "el", "la", "los", "las", "un", "una", "unos", "unas",
+    "de", "del", "al", "en", "por", "con", "para", "sin",
+    "sobre", "entre", "hacia", "desde", "como", "que", "se",
+    "su", "sus", "lo", "es", "son", "no", "si", "ya", "más",
+    "muy", "pero", "este", "esta", "estos", "estas", "ese",
+    "esa", "esos", "esas", "todo", "toda", "todos", "todas",
+    "otro", "otra", "otros", "otras",
+    "the", "of", "and", "in", "to", "for", "is", "on",
+    "with", "at", "by", "an", "or", "not", "are", "was",
+    "be", "has", "had", "its", "from", "this", "that", "which", "also",
+}
+
+
 def normalize_query(query: str) -> str:
     """
     Normaliza una query de búsqueda para mejorar la precisión.
@@ -407,11 +421,14 @@ def normalize_query(query: str) -> str:
       - Strip de espacios
       - Colapsar espacios múltiples
       - Eliminar puntuación huérfana al inicio/final
+      - Eliminar stop words (artículos, preposiciones)
     """
     query = query.strip()
     query = re.sub(r'\s+', ' ', query)
     query = re.sub(r'^[^\w]+|[^\w]+$', '', query)
-    return query
+    # Filtrar stop words para mejorar la búsqueda vectorial/léxica
+    words = [w for w in query.split() if w.lower() not in STOP_WORDS_ES_EN]
+    return ' '.join(words) if words else query  # fallback si todo son stop words
 
 
 def deduplicate_chunks(chunks: list[str]) -> list[str]:
