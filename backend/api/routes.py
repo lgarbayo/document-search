@@ -19,7 +19,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Request, 
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from api.auth import get_current_user, USERS, create_token, pwd_context
+from api.auth import get_current_user, require_admin, require_admin_or_editor, USERS, create_token, pwd_context
 from workers.tasks import process_document
 from services.vector_db import VectorDBService
 from services.document_extractor import SUPPORTED_EXTENSIONS, normalize_query
@@ -58,16 +58,18 @@ async def login(body: LoginRequest):
 # ═══════════════════════════════════════════════════════════════
 
 @router.post("/upload", tags=["Ingesta"])
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_admin_or_editor),
+):
     """
     Sube un documento para procesamiento asíncrono.
 
-    Formatos soportados: PDF, TXT, CSV, XLSX.
+    Requiere rol `admin` o `editor`.
+    El archivo se persiste en ./sharepoint_data en el servidor central
+    antes de encolarse en Celery.
 
-    1. Valida la extensión del archivo
-    2. Guarda el archivo en disco
-    3. Dispara la tarea de Celery (NO bloquea)
-    4. Devuelve HTTP 202 con el task_id para tracking
+    Formatos soportados: PDF, TXT, CSV, XLSX.
     """
     # Validar tipo de archivo
     ext = Path(file.filename).suffix.lower()
@@ -77,8 +79,8 @@ async def upload_document(file: UploadFile = File(...)):
             detail=f"Formato no soportado: {ext}. Válidos: {', '.join(SUPPORTED_EXTENSIONS)}"
         )
 
-    # Crear directorio de uploads si no existe
-    upload_dir = Path(settings.UPLOAD_DIR)
+    # Carpeta de persistencia centralizada (SharePoint-style)
+    upload_dir = Path("./sharepoint_data")
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     # Guardar archivo en disco
@@ -87,7 +89,10 @@ async def upload_document(file: UploadFile = File(...)):
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
-        logger.info(f"📁 Archivo guardado: {file_path} ({len(content)} bytes)")
+        logger.info(
+            f"📁 Archivo guardado en sharepoint_data: {file_path} "
+            f"({len(content)} bytes) por usuario={current_user.get('sub')} rol={current_user.get('role')}"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -284,7 +289,8 @@ async def search_documents(
             top_k=top_k,
             filters=filters if filters else None,
             range_filters=range_filters if range_filters else None,
-            exact_filters=exact_filters if exact_filters else None
+            exact_filters=exact_filters if exact_filters else None,
+            role=role,
         )
 
         # Activar extracción automáticamente si no hay resultados
@@ -688,17 +694,14 @@ class LLMSettingsRequest(BaseModel):
 @router.post("/system/settings", tags=["Sistema"])
 async def update_llm_settings(
     body: LLMSettingsRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin),
 ):
     """
     Actualiza el proveedor LLM en caliente sin reiniciar el servidor.
-    Solo accesible por administradores.
+    Solo accesible por administradores (rol admin).
     Env vars actualizadas: LLM_PROVIDER, OPENAI_API_KEY / GEMINI_API_KEY /
     ANTHROPIC_API_KEY, y la var de modelo correspondiente.
     """
-    role = current_user.get("role", "normal")
-    if role != "admin":
-        raise HTTPException(status_code=403, detail="Solo los administradores pueden cambiar la configuración LLM")
 
     valid_providers = {"local", "openai", "gemini", "claude"}
     if body.provider not in valid_providers:
@@ -804,13 +807,11 @@ class IndexDirectoryRequest(BaseModel):
 
 
 @router.post("/system/index-directory", tags=["Sistema"])
-async def index_directory(request: IndexDirectoryRequest, current_user: dict = Depends(get_current_user)):
+async def index_directory(request: IndexDirectoryRequest, current_user: dict = Depends(require_admin)):
     """
     Escanea un directorio y dispara tareas de Celery para cada archivo soportado.
-    Solo accesible para administradores.
+    Solo accesible para administradores (rol admin).
     """
-    if current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Solo los administradores pueden indexar directorios")
     dir_path = Path(request.path)
     if not dir_path.is_dir():
         raise HTTPException(status_code=400, detail=f"El directorio no existe: {request.path}")

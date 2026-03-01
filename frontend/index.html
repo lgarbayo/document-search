@@ -641,7 +641,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 500;
       padding: 24px;
     }
 
@@ -1339,7 +1339,7 @@
 <body>
 
   <!-- LOGIN MODAL -->
-  <div id="loginModal" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);">
+  <div id="loginModal" style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);">
     <div style="background:#ffffff;border-radius:16px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:1rem;">
       <img src="assets/meiga-logo.svg" alt="Meiga" style="width:56px;height:56px;">
       <h2 style="margin:0;font-size:1.5rem;font-weight:700;color:#14213d;">Iniciar sesión</h2>
@@ -1399,8 +1399,19 @@
     </div>
   </div>
 
-  <!-- FILE MANAGER — fixed top-right -->
-  <div style="position:fixed;top:16px;right:20px;z-index:300;display:flex;gap:8px;align-items:center;">
+  <!-- FILE MANAGER — fixed top-right (hidden until authenticated) -->
+  <div id="topBar" style="position:fixed;top:16px;right:20px;z-index:300;display:none;gap:8px;align-items:center;">
+    <!-- Subir archivo: visible para admin y editor, oculto para lector -->
+    <button id="uploadBtn" style="display:none;padding:7px 13px;background:#14213d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;align-items:center;gap:5px;"
+      onclick="document.getElementById('uploadInput').click()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+      </svg>
+      Subir archivo
+    </button>
+    <input id="uploadInput" type="file" style="display:none" accept=".pdf,.txt,.csv,.xlsx"
+      onchange="if(this.files[0]) uploadDocument(this.files[0])" />
     <button id="settingsBtn" style="display:none;padding:7px 13px;background:#14213d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;" onclick="openSettingsModal()">
       &#9881;&#65039; Ajustes LLM
     </button>
@@ -1459,9 +1470,9 @@
     <img src="assets/home-1-svgrepo-com.svg" alt="Home" style="width:24px;height:24px;" />
   </button>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN CONTENT — hidden until authenticated -->
   <div id="shellLayout" class="min-h-screen flex flex-col items-center justify-center px-4 pb-12"
-    style="padding-top:32px">
+    style="padding-top:32px;display:none">
 
     <div class="w-full flex flex-col items-center gap-4" style="max-width:720px">
 
@@ -1730,27 +1741,27 @@
       </div>
     </dialog>
 
-    <!-- FILE EXPLORER MODAL -->
-    <div class="fe-backdrop" id="feModal" style="display:none" onclick="if(event.target===this)closeExplorer()">
-      <div class="fe-card">
-        <div class="fe-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16">
-            <path
-              d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z" />
-          </svg>
-          <h3>Explorar directorios</h3>
-          <button class="fe-close" onclick="closeExplorer()" aria-label="Cerrar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-              <path
-                d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-            </svg>
+    <!-- PATH INPUT MODAL -->
+    <div id="pathInputModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(20,33,61,.55);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:24px;" onclick="if(event.target===this)closePathInput()">
+      <div style="background:#fff;border-radius:22px 6px 22px 6px;border:1.5px solid rgba(20,33,61,.14);padding:2rem 2rem 1.75rem;width:100%;max-width:500px;box-shadow:0 12px 48px rgba(20,33,61,.22);display:flex;flex-direction:column;gap:1rem;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#fca311" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>
+          <h3 style="margin:0;font-size:1.05rem;font-weight:700;color:#14213d;flex:1;">Directorio raíz del servidor</h3>
+          <button onclick="closePathInput()" style="background:none;border:none;cursor:pointer;color:rgba(20,33,61,.4);padding:4px;border-radius:8px;display:flex;" aria-label="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
           </button>
         </div>
-        <div class="fe-breadcrumb" id="feBreadcrumb"></div>
-        <div class="fe-list" id="feList"></div>
-        <div class="fe-footer">
-          <span class="fe-footer-path" id="feCurrentPath">/app</span>
-          <button class="fe-select-btn" id="feSelectBtn" onclick="selectExplorerDir()">Seleccionar esta carpeta</button>
+        <p style="margin:0;font-size:.85rem;color:rgba(20,33,61,.6);line-height:1.6;">Escribe la ruta absoluta de la carpeta en el servidor que quieres indexar como directorio principal de búsqueda.</p>
+        <input id="pathInputField" type="text" placeholder="/app/datasets"
+          style="width:100%;padding:.65rem .9rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.95rem;font-family:monospace;color:#14213d;outline:none;box-sizing:border-box;"
+          onkeydown="if(event.key==='Enter')confirmPathInput()" />
+        <p id="pathInputError" style="display:none;margin:0;font-size:.82rem;color:#dc2626;"></p>
+        <div style="display:flex;gap:.75rem;justify-content:flex-end;">
+          <button onclick="closePathInput()" style="padding:.6rem 1.2rem;background:none;border:1.5px solid #d1d5db;border-radius:8px;cursor:pointer;font-weight:600;font-family:'Inter',sans-serif;color:#14213d;">Cancelar</button>
+          <button id="pathInputConfirmBtn" onclick="confirmPathInput()" style="padding:.6rem 1.4rem;background:#14213d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:'Inter',sans-serif;display:inline-flex;align-items:center;gap:6px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/></svg>
+            Seleccionar
+          </button>
         </div>
       </div>
     </div>
@@ -1777,12 +1788,25 @@
       function getRole()  { return localStorage.getItem(MEIGA_ROLE_KEY);  }
       function showLoginModal() { $('loginModal').style.display = 'flex'; }
       function applyRoleUI(role) {
+        // Revelar interfaz principal
+        const shell = $('shellLayout'); if (shell) shell.style.display = '';
+        const tb = $('topBar'); if (tb) tb.style.display = 'flex';
+
+        // Controles solo para admin
         const fm = $('fmContainer'); if (fm) fm.style.display = role === 'admin' ? '' : 'none';
         const sb = $('settingsBtn'); if (sb) sb.style.display = role === 'admin' ? 'inline-flex' : 'none';
+
+        // Subida de archivos: admin y editor; oculto para lector
+        const ub = $('uploadBtn');
+        if (ub) ub.style.display = (role === 'admin' || role === 'editor') ? 'inline-flex' : 'none';
+
+        // Guardar rol para guards de drag-drop
+        window._userRole = role;
       }
       $('loginBtn').addEventListener('click', async () => {
         const u = $('loginUser').value.trim(), p = $('loginPass').value;
-        const errEl = $('loginError'); if (errEl) errEl.textContent = '';
+        const errEl = $('loginError');
+        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
         try {
           const r = await fetch('/api/login', {
             method: 'POST',
@@ -1794,10 +1818,12 @@
           localStorage.setItem(MEIGA_TOKEN_KEY, d.access_token);
           localStorage.setItem(MEIGA_ROLE_KEY, d.role);
           $('loginModal').style.display = 'none';
+          if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
           applyRoleUI(d.role);
+          await loadStoredDirectory();
           showToast(`Bienvenido/a, ${u} (✓ ${d.role})`);
         } catch (e) {
-          if (errEl) errEl.textContent = e.message;
+          if (errEl) { errEl.textContent = e.message; errEl.style.display = 'block'; }
         }
       });
       $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
@@ -1842,133 +1868,82 @@
       function updateDirUI(path) {
         rootDirPath = path;
         const el = $('fmDirName');
-        if (path) { el.textContent = dirName(path); el.classList.remove('fm-dir-name--unset'); $('pickerOverlay').style.display = 'none' }
-        else { el.textContent = 'Sin configurar'; el.classList.add('fm-dir-name--unset'); $('pickerOverlay').style.display = 'flex' }
+        if (path) {
+          el.textContent = dirName(path);
+          el.classList.remove('fm-dir-name--unset');
+          $('pickerOverlay').style.display = 'none';
+        } else {
+          el.textContent = 'Sin configurar';
+          el.classList.add('fm-dir-name--unset');
+          // Only show the picker overlay when user is already authenticated
+          if (getToken()) $('pickerOverlay').style.display = 'flex';
+        }
       }
       async function loadStoredDirectory() {
         try { const s = await dbGet(DIR_KEY); if (s && typeof s === 'string') updateDirUI(s); else updateDirUI(null) }
         catch { updateDirUI(null) }
       }
 
-      /* doPickDirectory — mirrors rootDirService.pickDirectory()
-         isChange=true: called from "Cambiar directorio" (keeps state if cancelled)
-         isChange=false: first-time pick from overlay */
-      /* ── File Explorer ─────────────────────────────────────── */
-      let feCurrentDir = '/app';
-      let feIsChange = false;
-
-      async function doPickDirectory(isChange) {
+      /* ── Directory picker (simple path input) ──────────────── */
+      function doPickDirectory(isChange) {
         closeFmMenu();
-        feIsChange = isChange;
-        feCurrentDir = rootDirPath || '/app/datasets';
-        // Ocultar el overlay del picker para que no tape el explorador
         $('pickerOverlay').style.display = 'none';
-        $('feModal').style.display = 'flex';
-        await loadExplorerDir(feCurrentDir);
+        $('pathInputField').value = rootDirPath || '/app/datasets';
+        const errEl = $('pathInputError');
+        if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+        const confirmBtn = $('pathInputConfirmBtn');
+        if (confirmBtn) confirmBtn.disabled = false;
+        $('pathInputModal').style.display = 'flex';
+        setTimeout(() => $('pathInputField').focus(), 50);
       }
 
-      function closeExplorer() {
-        $('feModal').style.display = 'none';
-        // Si no hay directorio configurado, volver a mostrar el overlay del picker
+      function closePathInput() {
+        $('pathInputModal').style.display = 'none';
         if (!rootDirPath) $('pickerOverlay').style.display = 'flex';
       }
 
-      function formatSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / 1048576).toFixed(1) + ' MB';
-      }
-
-      async function loadExplorerDir(dirPath) {
-        feCurrentDir = dirPath;
-        $('feCurrentPath').textContent = dirPath;
-        $('feList').innerHTML = '<div class="fe-empty"><div class="spinner" style="width:24px;height:24px;margin:0 auto"></div></div>';
-
-        try {
-          const r = await fetch(`/api/system/list-directory?path=${encodeURIComponent(dirPath)}`);
-          if (!r.ok) throw new Error('No se puede acceder');
-          const data = await r.json();
-
-          // Breadcrumb
-          const parts = data.current.split('/').filter(Boolean);
-          let breadHtml = `<button onclick="loadExplorerDir('/')">/</button>`;
-          let cumPath = '';
-          parts.forEach((p, i) => {
-            cumPath += '/' + p;
-            const isLast = i === parts.length - 1;
-            breadHtml += `<span style="color:rgba(20,33,61,.25)">/</span>`;
-            if (isLast) breadHtml += `<span style="font-weight:600;color:var(--text)">${esc(p)}</span>`;
-            else breadHtml += `<button onclick="loadExplorerDir('${cumPath}')">${esc(p)}</button>`;
-          });
-          $('feBreadcrumb').innerHTML = breadHtml;
-
-          // Item list
-          if (!data.items || data.items.length === 0) {
-            $('feList').innerHTML = '<div class="fe-empty">Esta carpeta está vacía</div>';
+      async function confirmPathInput() {
+        const path = $('pathInputField').value.trim();
+        const errEl = $('pathInputError');
+        if (!path) {
+          if (errEl) { errEl.textContent = 'Introduce una ruta válida.'; errEl.style.display = 'block'; }
             return;
           }
-
-          let listHtml = '';
-
-          // Back button if we have a parent
-          if (data.parent) {
-            listHtml += `<button class="fe-item" onclick="loadExplorerDir('${data.parent}')">
-            <div class="fe-item-icon folder">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
-            </div>
-            <div class="fe-item-info"><span class="fe-item-name">..</span><span class="fe-item-meta">Carpeta padre</span></div>
-          </button>`;
-          }
-
-          data.items.forEach(item => {
-            if (item.type === 'directory') {
-              listHtml += `<button class="fe-item" onclick="loadExplorerDir('${item.path}')">
-              <div class="fe-item-icon folder">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/></svg>
-              </div>
-              <div class="fe-item-info">
-                <span class="fe-item-name">${esc(item.name)}</span>
-                <span class="fe-item-meta">${item.fileCount} archivo${item.fileCount !== 1 ? 's' : ''} soportado${item.fileCount !== 1 ? 's' : ''}</span>
-              </div>
-              <svg class="fe-item-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
-            </button>`;
-            } else {
-              const extIcons = { '.pdf': 'DOC', '.txt': 'TXT', '.csv': 'CSV', '.xlsx': 'XLS', '.png': 'IMG', '.jpg': 'IMG', '.jpeg': 'IMG' };
-              const icon = extIcons[item.extension] || 'FILE';
-              listHtml += `<div class="fe-item" style="cursor:default;opacity:.7">
-              <div class="fe-item-icon file"><span style="font-size:12px; font-weight:bold; color:var(--text);">${icon}</span></div>
-              <div class="fe-item-info">
-                <span class="fe-item-name">${esc(item.name)}</span>
-                <span class="fe-item-meta">${formatSize(item.size)}</span>
-              </div>
-            </div>`;
-            }
-          });
-
-          $('feList').innerHTML = listHtml;
-        } catch (e) {
-          $('feList').innerHTML = `<div class="fe-empty">Error: ${esc(e.message)}</div>`;
-        }
+        $('pathInputModal').style.display = 'none';
+        await indexDirectory(path);
       }
 
-      async function selectExplorerDir() {
-        const path = feCurrentDir;
-        closeExplorer();
+      async function indexDirectory(path) {
         const btn = $('pickerBtn'), lbl = $('pickerBtnLabel');
-        if (btn) { btn.disabled = true; if (lbl) lbl.textContent = 'Indexando…' }
+        if (btn) { btn.disabled = true; if (lbl) lbl.textContent = 'Indexando…'; }
         $('searchBtn').disabled = true;
         try {
           showToast('Configurando directorio…', 10000);
-          await fetch('/api/system/database', { method: 'DELETE' });
-          const r2 = await fetch('/api/system/index-directory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path }) });
-          if (!r2.ok) { const err = await r2.json(); throw new Error(err.detail || 'Error indexando') }
+          const authHeader = { 'Authorization': 'Bearer ' + getToken() };
+          await fetch('/api/system/database', { method: 'DELETE', headers: authHeader });
+          const r2 = await fetch('/api/system/index-directory', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeader },
+            body: JSON.stringify({ path })
+          });
+          if (r2.status === 401 || r2.status === 403) {
+            const err = await r2.json();
+            throw new Error(err.detail || 'Sin permisos — inicia sesión como administrador');
+          }
+          if (!r2.ok) { const err = await r2.json(); throw new Error(err.detail || 'Error indexando'); }
           const { dispatched } = await r2.json();
           await dbSet(DIR_KEY, path);
           updateDirUI(path);
           resetSearchState();
           showToast(`✓ Directorio configurado. ${dispatched} archivo${dispatched !== 1 ? 's' : ''} en proceso.`, 4000);
-        } catch (e) { showToast(`Error: ${e.message}`); $('pickerHint').style.display = 'flex' }
-        finally { if (btn) { btn.disabled = false; if (lbl) lbl.textContent = 'Elegir carpeta' } $('searchBtn').disabled = false }
+        } catch (e) {
+          showToast(`Error: ${e.message}`);
+          $('pickerHint').style.display = 'flex';
+          updateDirUI(null);
+        } finally {
+          if (btn) { btn.disabled = false; if (lbl) lbl.textContent = 'Elegir carpeta'; }
+          $('searchBtn').disabled = false;
+        }
       }
 
       function resetSearchState() { hasSearched = false; currentQuery = ''; $('searchInput').value = ''; showResultsState('hidden'); setHasSearched(false); $('queryExpansionInfo').style.display = 'none'; }
@@ -2432,15 +2407,15 @@
 
       window.addEventListener('dragenter', (e) => {
         e.preventDefault();
-        // Solo activamos D&D si ya hay un rootDir configurado
-        if (!rootDirPath) return;
+        // Solo activamos D&D si hay un rootDir configurado y el usuario puede subir
+        if (!rootDirPath || window._userRole === 'lector') return;
         dragCounter++;
         $('dragOverlay').classList.add('active');
       });
 
       window.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        if (!rootDirPath) return;
+        if (!rootDirPath || window._userRole === 'lector') return;
         dragCounter--;
         if (dragCounter === 0) {
           $('dragOverlay').classList.remove('active');
@@ -2453,7 +2428,7 @@
 
       window.addEventListener('drop', async (e) => {
         e.preventDefault();
-        if (!rootDirPath) return;
+        if (!rootDirPath || window._userRole === 'lector') return;
 
         dragCounter = 0;
         $('dragOverlay').classList.remove('active');

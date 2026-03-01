@@ -301,14 +301,22 @@ class VectorDBService:
         if must_conditions:
              query_filter = Filter(must=must_conditions)
 
-        # Restricción por departamento según rol (RBAC)
+        # ── Payload filtering por visibilidad (RBAC) ──────────────
+        # Los documentos marcados como visibility="admin_only" solo los
+        # puede ver el rol admin. Cualquier otro rol los excluye vía must_not.
         if role != "admin":
-            dept_condition = FieldCondition(key="department", match=MatchValue(value=role))
+            visibility_condition = FieldCondition(
+                key="visibility", match=MatchValue(value="admin_only")
+            )
             if query_filter:
-                query_filter = Filter(must=query_filter.must + [dept_condition] if query_filter.must else [dept_condition],
-                                      should=query_filter.should)
+                existing_must_not = list(query_filter.must_not or [])
+                query_filter = Filter(
+                    must=query_filter.must,
+                    should=query_filter.should,
+                    must_not=existing_must_not + [visibility_condition],
+                )
             else:
-                query_filter = Filter(must=[dept_condition])
+                query_filter = Filter(must_not=[visibility_condition])
         results = await asyncio.to_thread(
             self.client.query_points,
             collection_name=self.collection_name,
@@ -342,6 +350,7 @@ class VectorDBService:
         filters: dict = None,
         range_filters: dict = None,
         exact_filters: dict = None,
+        role: str = "lector",
     ) -> list[dict]:
         """
         Búsqueda híbrida: semántica + léxica en paralelo con fusión de resultados.
@@ -353,11 +362,15 @@ class VectorDBService:
         Los resultados que coinciden léxicamente reciben un boost de score (×1.15),
         lo que los sube al top del ranking sin eliminar resultados puramente semánticos.
 
+        RBAC: Los documentos con visibility="admin_only" se excluyen para roles
+        que no sean admin, via filtro must_not de Qdrant.
+
         Args:
             query: Texto de búsqueda (se vectoriza).
             query_text: Texto para el filtro léxico (palabras clave a buscar literalmente).
             top_k: Número de resultados finales.
             filters: Filtros adicionales de metadatos (category, extension, etc.).
+            role: Rol del usuario que realiza la búsqueda.
         """
         await asyncio.to_thread(self.ensure_collection)
 
@@ -393,19 +406,28 @@ class VectorDBService:
             for field, value in exact_filters.items():
                 must_conditions.append(FieldCondition(key=field, match=MatchValue(value=value)))
 
-        # Filtro para búsqueda semántica pura
-        semantic_filter = Filter(
-            should=should_conditions if should_conditions else None,
-            must=must_conditions if must_conditions else None
-        ) if (should_conditions or must_conditions) else None
+        # ── Payload filtering por visibilidad (RBAC) ──────────────
+        # Excluir documentos admin_only para cualquier rol que no sea admin.
+        visibility_condition = (
+            FieldCondition(key="visibility", match=MatchValue(value="admin_only"))
+            if role != "admin" else None
+        )
 
-        # Filtro para búsqueda léxica: base + MatchText
-        lexical_must = list(must_conditions)
-        lexical_must.append(FieldCondition(key="text", match=MatchText(text=query_text)))
+        def _build_filter(extra_must_text=None):
+            """Construye el Filter de Qdrant con soporte para must_not de visibilidad."""
+            m = list(must_conditions)
+            if extra_must_text:
+                m.append(extra_must_text)
+            return Filter(
+                should=should_conditions if should_conditions else None,
+                must=m if m else None,
+                must_not=[visibility_condition] if visibility_condition else None,
+            ) if (should_conditions or m or visibility_condition) else None
 
-        lexical_filter = Filter(
-            should=should_conditions if should_conditions else None,
-            must=lexical_must
+        # Filtros para ambas búsquedas
+        semantic_filter = _build_filter()
+        lexical_filter = _build_filter(
+            extra_must_text=FieldCondition(key="text", match=MatchText(text=query_text))
         )
 
         # Ejecutar ambas búsquedas en paralelo
