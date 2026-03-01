@@ -291,24 +291,18 @@ class VectorDBService:
         if exact_filters:
             for key, value in exact_filters.items():
                 if value is not None:
-                    # MatchValue is case-sensitive exact match. For Author it might be better to use MatchText or handle it case-insensitively if needed, but since Qdrant handles case-sensitive MatchValue by default we will stick to MatchText if it's a full-text index, or MatchValue. Since 'author' is not explicitly full-text indexed, an exact MatchValue or lowercase search is best.
-                    # We will use MatchValue for exact match, as we want complete names "John Doe"
                     must_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
                 
         if range_filters:
-            for key, r_val in range_filters.items():
-                gte_val = r_val.get("gte")
-                lte_val = r_val.get("lte")
-                if gte_val is not None or lte_val is not None:
-                    must_conditions.append(
-                        FieldCondition(
-                            key=key,
-                            range=Range(
-                                gte=float(gte_val) if gte_val is not None else None,
-                                lte=float(lte_val) if lte_val is not None else None
-                            )
-                        )
-                    )
+            for key, bounds in range_filters.items():
+                range_args = {}
+                if "gte" in bounds and bounds["gte"] is not None:
+                    range_args["gte"] = float(bounds["gte"])
+                if "lte" in bounds and bounds["lte"] is not None:
+                    range_args["lte"] = float(bounds["lte"])
+                
+                if range_args:
+                    must_conditions.append(FieldCondition(key=key, range=Range(**range_args)))
                     
         if must_conditions:
              query_filter = Filter(must=must_conditions)
@@ -398,19 +392,14 @@ class VectorDBService:
                     must_conditions.append(FieldCondition(key=key, match=MatchValue(value=value)))
 
         if range_filters:
-            for key, r_val in range_filters.items():
-                gte_val = r_val.get("gte")
-                lte_val = r_val.get("lte")
-                if gte_val is not None or lte_val is not None:
-                    must_conditions.append(
-                        FieldCondition(
-                            key=key,
-                            range=Range(
-                                gte=float(gte_val) if gte_val is not None else None,
-                                lte=float(lte_val) if lte_val is not None else None,
-                            ),
-                        )
-                    )
+            for key, bounds in range_filters.items():
+                range_args = {}
+                if "gte" in bounds and bounds["gte"] is not None:
+                    range_args["gte"] = float(bounds["gte"])
+                if "lte" in bounds and bounds["lte"] is not None:
+                    range_args["lte"] = float(bounds["lte"])
+                if range_args:
+                    must_conditions.append(FieldCondition(key=key, range=Range(**range_args)))
 
         # RBAC: excluir docs admin_only para roles no-admin
         must_not_conditions = []
@@ -513,16 +502,18 @@ class VectorDBService:
         if range_filters:
             for field, bounds in range_filters.items():
                 range_args = {}
-                if "gte" in bounds:
-                    range_args["gte"] = bounds["gte"]
-                if "lte" in bounds:
-                    range_args["lte"] = bounds["lte"]
-                must_conditions.append(FieldCondition(key=field, range=Range(**range_args)))
+                if "gte" in bounds and bounds["gte"] is not None:
+                    range_args["gte"] = float(bounds["gte"])
+                if "lte" in bounds and bounds["lte"] is not None:
+                    range_args["lte"] = float(bounds["lte"])
+                if range_args:
+                    must_conditions.append(FieldCondition(key=field, range=Range(**range_args)))
                 
         # Support for ExifTool Exact matches (Author, dynamic metadata)
         if exact_filters:
             for field, value in exact_filters.items():
-                must_conditions.append(FieldCondition(key=field, match=MatchValue(value=value)))
+                if value is not None:
+                    must_conditions.append(FieldCondition(key=field, match=MatchValue(value=value)))
 
         # ── Payload filtering por visibilidad (RBAC) ──────────────
         # Excluir documentos admin_only para cualquier rol que no sea admin.
