@@ -86,12 +86,44 @@ Proveedores soportados: `local`, `openai`, `gemini`, `claude`.
 
 ```mermaid
 graph TD
-    UI[Frontend HTML/JS] --> API[FastAPI Backend]
-    API --> VDB[(Qdrant Vector DB)]
-    API --> Worker[Celery Workers]
-    Worker --> Redis((Redis Queue))
-    Worker --> Ext[Document Extractor + OCR + Exif]
-    API --> LLM[LLM Engine: Local/Cloud]
+    subgraph "Frontend (Interfaz Premium)"
+        UI["HTML5 / JS Vanilla"]
+        CSS["Glassmorphism CSS"]
+        MD["Marked.js (Markdown)"]
+    end
+
+    subgraph "Backend (Cerebro API)"
+        FAST["FastAPI (Python 3.11+)"]
+        PYD["Pydantic v2 (Validación)"]
+        JWT["JWT + Bcrypt (Seguridad)"]
+    end
+
+    subgraph "Procesamiento Asíncrono"
+        CEL["Celery (Workers)"]
+        RED["Redis (Broker/Cache)"]
+    end
+
+    subgraph "Inteligencia & Búsqueda"
+        QDR[("Qdrant (Base de Datos Vectorial)")]
+        SENT["Sentence-Transformers (Embeddings)"]
+        LLM["LLMs: OpenAI / Gemini / Claude / SmolLM"]
+    end
+
+    subgraph "Extracción de Datos"
+        EXIF["ExifTool (Metadatos)"]
+        OCR["Tesseract (OCR)"]
+        PDF["PyMuPDF (Extractores)"]
+    end
+
+    UI --- CSS
+    UI --> FAST
+    FAST --> CEL
+    CEL <--> RED
+    CEL --> EXIF & OCR & PDF
+    EXIF & OCR & PDF --> SENT
+    SENT --> QDR
+    FAST --> QDR
+    FAST --> LLM
 ```
 
 ## 🧪 Testing
