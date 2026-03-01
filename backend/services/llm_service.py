@@ -43,11 +43,6 @@ class BaseLLMProvider(ABC):
         """Versión en streaming de chat(). Retorna un generador de strings."""
         ...
 
-    @abstractmethod
-    def expand_keywords(self, query: str) -> str:
-        """Extrae palabras clave relevantes de una consulta de búsqueda."""
-        ...
-
 
 # ═══════════════════════════════════════════════════════════════
 #  PROVEEDOR LOCAL — HuggingFaceTB/SmolLM2-135M (CPU)
@@ -134,26 +129,7 @@ class LocalSmolLMProvider(BaseLLMProvider):
         for word in ans.split(" "):
             yield word + " "
 
-    def expand_keywords(self, query: str) -> str:
-        import re
-        pipe = self._get_pipeline()
-        result = pipe(
-            query,
-            max_new_tokens=32,
-            do_sample=True,
-            temperature=0.75,
-            top_k=50,
-            top_p=0.95,
-            repetition_penalty=1.2,
-            pad_token_id=pipe.tokenizer.eos_token_id,
-        )
-        generated = result[0]["generated_text"]
-        response = generated[len(query):]
-        first_line = response.split("\n")[0]
-        tokens = re.findall(r"[\w'\-]+", first_line)
-        clean = ", ".join(tokens) if tokens else ", ".join(query.split())
-        logger.info(f"🧠 SmolLM keywords: '{query}' -> '{clean}'")
-        return clean
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -233,14 +209,7 @@ class OpenAIProvider(BaseLLMProvider):
             if content:
                 yield content
 
-    def expand_keywords(self, query: str) -> str:
-        return self._complete(
-            system=(
-                "Extract search keywords from the given query. "
-                "Return ONLY a comma-separated list of relevant keywords, no explanations."
-            ),
-            user=f"Query: {query}\nKeywords:",
-        )
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -297,11 +266,7 @@ class GeminiProvider(BaseLLMProvider):
             if chunk.text:
                 yield chunk.text
 
-    def expand_keywords(self, query: str) -> str:
-        prompt = (
-            f"Concepts fitting to this definition: {query}\n"
-        )
-        return self.model.generate_content(prompt).text.strip()
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -375,14 +340,7 @@ class ClaudeProvider(BaseLLMProvider):
             for text in stream.text_stream:
                 yield text
 
-    def expand_keywords(self, query: str) -> str:
-        return self._complete(
-            system=(
-                "Extract search keywords from the given query. "
-                "Return ONLY a comma-separated list of relevant keywords, no explanations."
-            ),
-            user=f"Query: {query}\nKeywords:",
-        )
+
 
 
 # ═══════════════════════════════════════════════════════════════

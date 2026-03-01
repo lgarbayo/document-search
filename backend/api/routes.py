@@ -23,7 +23,6 @@ from api.auth import get_current_user, require_admin, require_admin_or_editor, U
 from workers.tasks import process_document
 from services.vector_db import VectorDBService
 from services.document_extractor import SUPPORTED_EXTENSIONS, normalize_query
-from services.llm_expander import expand_query_async
 from core.config import settings
 from celery.result import AsyncResult
 
@@ -164,8 +163,7 @@ async def search_documents(
     q: str = Query(..., min_length=1, description="Texto de búsqueda"),
     top_k: int = Query(30, ge=1, le=1000, description="Número de resultados"),
     type: list[str] = Query(None, description="Filtrar por tipo de documento"),
-    expand: bool = Query(False, description="Activar expansión de consulta con LLM"),
-    mode: str = Query("semantic", description="Modo: semantic | text | descriptive"),
+    mode: str = Query("semantic", description="Modo: semantic | text"),
     min_size: int = Query(None, ge=0, description="Tamaño mínimo en bytes"),
     max_size: int = Query(None, ge=0, description="Tamaño máximo en bytes"),
     author: str = Query(None, description="Filtrar por autor del documento"),
@@ -285,10 +283,7 @@ async def search_documents(
             extracted_keywords = None
             use_expansion = False
         else:
-            # 🔍 MODO SEMÁNTICO / DESCRIPTIVO
-            extracted_keywords = None
-            use_expansion = expand
-
+            # 🔍 MODO SEMÁNTICO
             # Búsqueda inicial HÍBRIDA: semántica + léxica en paralelo
             raw_results = await vdb.hybrid_search(
                 query=q_normalized,
@@ -299,71 +294,6 @@ async def search_documents(
                 exact_filters=exact_filters if exact_filters else None,
                 role=role,
             )
-
-        # Activar extracción automáticamente si no hay resultados
-        if not raw_results and not use_expansion:
-            logger.info(f"🤖 Sin resultados para '{q}', activando extracción de palabras clave...")
-            use_expansion = True
-
-        # Si se activó la extracción (manual o automática)
-        if use_expansion:
-            try:
-                logger.info(f"🔑 Extrayendo palabras clave de: '{q}'")
-                extracted_keywords = await expand_query_async(q, max_keywords=5)
-                logger.info(f"✅ Palabras clave extraídas: '{extracted_keywords}'")
-
-                # Buscar con las keywords extraídas
-                keyword_results = await vdb.search(
-                    query=extracted_keywords,
-                    top_k=top_k,
-                    filters=filters if filters else None,
-                    range_filters=range_filters if range_filters else None,
-                    exact_filters=exact_filters if exact_filters else None,
-                    role=role,
-                )
-
-                # --- FIXED MERGE ---
-                # Build a unified result pool, tagging each result with the
-                # query string that produced it so highlights work correctly.
-                seen_texts: set[str] = set()
-                merged: list[dict] = []
-
-                for r in raw_results:
-                    txt = r.get("text", "")
-                    if txt not in seen_texts:
-                        r["_highlight_query"] = q_normalized   # original query
-                        merged.append(r)
-                        seen_texts.add(txt)
-
-                for r in keyword_results:
-                    txt = r.get("text", "")
-                    if txt not in seen_texts:
-                        r["_highlight_query"] = extracted_keywords  # keyword query
-                        merged.append(r)
-                        seen_texts.add(txt)
-
-                # Re-rank: results found by BOTH queries should rank highest.
-                # Give a small score boost to keyword-only results so they are
-                # not buried under low-scoring original results.
-                keyword_texts = {r.get("text", "") for r in keyword_results}
-                original_texts = {r.get("text", "") for r in raw_results}
-
-                for r in merged:
-                    txt = r.get("text", "")
-                    if txt in keyword_texts and txt in original_texts:
-                        r["score"] = r.get("score", 0.0) * 1.15  # boost overlap
-                    elif txt in keyword_texts:
-                        r["score"] = r.get("score", 0.0) * 1.05  # slight boost for keyword-only
-
-                        raw_results = sorted(merged, key=lambda r: r.get("score", 0.0), reverse=True)[:top_k]
-                        logger.info(f"🔀 Resultados combinados: {len(raw_results)} (query + keywords)")
-                    elif keyword_results:
-                        # Solo teníamos keywords results (fallback)
-                        raw_results = keyword_results
-            except Exception as e:
-                logger.error(f"❌ Error en extracción de palabras clave: {e}")
-                # Si falla la extracción, continuar con resultados originales (vacíos o no)
-                pass
 
         # ── Agrupar resultados por documento (source) ──
         from collections import OrderedDict
@@ -437,12 +367,16 @@ async def search_documents(
             "queryEchoed": q,
         }
         
-        # Agregar metadata sobre extracción de palabras clave (si se usó)
-        if use_expansion:
-            response["searchMode"] = "descriptive"
-            response["expandedQuery"] = extracted_keywords or ""
-        else:
-            response["searchMode"] = "normal"
+        # ── Respuesta final ──
+        return {
+            "results": list(grouped.values()),
+            "total": sum(len(d["fragments"]) for d in grouped.values()),
+            "page": 1,
+            "pageSize": top_k,
+            "durationMs": int((time.time() - start_time) * 1000),
+            "searchMode": mode,
+            "queryEchoed": q,
+        }
 
         return response
 
