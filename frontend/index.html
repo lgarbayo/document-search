@@ -11,6 +11,7 @@
   <link rel="icon" type="image/x-icon" href="assets/meiga-logo.svg">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
       --text: #14213d;
@@ -1333,12 +1334,69 @@
     .dd-summary-panel { display: none; flex-direction: column; gap: 10px; padding: 16px 24px 20px; border-top: 1px solid rgba(20,33,61,.08); background: #f0f4ff; }
     .dd-summary-text { font-size: .875rem; line-height: 1.65; color: #334155; white-space: pre-wrap; }
     .dd-summary-loading { display: flex; align-items: center; gap: 8px; color: rgba(20,33,61,.5); font-size: .85rem; }
+
+    /* ── Global Chat ─────────────────────────────────────────────── */
+    .global-chat-btn { position: fixed; top: 24px; left: 24px; width: 56px; height: 56px; border-radius: 50%; background: #14213d; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(20,33,61,.3); cursor: pointer; z-index: 1000; border: none; transition: transform .2s, background .2s; }
+    .global-chat-btn:hover { transform: scale(1.05); background: #fca311; }
+    .global-chat-panel { position: fixed; top: 0; left: 0; width: 420px; height: 100vh; max-height: 100vh; background: #fff; box-shadow: 4px 0 32px rgba(20,33,61,.2); display: none; flex-direction: column; z-index: 1001; overflow: hidden; border-right: 1px solid rgba(20,33,61,.08); }
+    .global-chat-header { padding: 16px 20px; background: #14213d; color: white; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 1rem; }
+    .global-chat-close { background: none; border: none; color: rgba(255,255,255,.7); cursor: pointer; padding: 4px; display: flex; transition: color .2s; }
+    .global-chat-close:hover { color: white; }
+    .global-chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #fafafa; }
+    .global-chat-msg { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: .9rem; line-height: 1.5; word-wrap: break-word; }
+    .global-chat-msg.user { align-self: flex-end; background: #fca311; color: #14213d; font-weight: 500; border-bottom-right-radius: 4px; }
+    .global-chat-msg.bot { align-self: flex-start; background: white; color: #334155; border: 1px solid rgba(20,33,61,.08); border-bottom-left-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,.02); }
+    .global-chat-msg.bot pre { background: #f1f5f9; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 8px 0; font-size: .8rem; }
+    .global-chat-msg.bot code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .global-chat-sources { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(20,33,61,.1); font-size: .75rem; color: #64748b; }
+    .global-chat-sources span { display: inline-block; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; margin: 2px; }
+    .global-chat-input-area { padding: 16px; background: white; border-top: 1px solid rgba(20,33,61,.08); display: flex; gap: 8px; }
+    .global-chat-input { flex: 1; padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 20px; font-size: .9rem; outline: none; transition: border-color .2s; }
+    .global-chat-input:focus { border-color: #14213d; }
+    .global-chat-send { background: #14213d; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+    .global-chat-send:hover:not(:disabled) { background: #fca311; }
+    .global-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+    .global-chat-typing { display: flex; gap: 4px; padding: 12px 16px; align-items: center; height: 16px; }
+    .global-chat-typing span { width: 6px; height: 6px; background: #cbd5e1; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+    .global-chat-typing span:nth-child(1) { animation-delay: -0.32s; }
+    .global-chat-typing span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
   </style>
 </head>
 
 <body>
 
-  <!-- LOGIN MODAL -->
+  <!-- Global Chat UI -->
+  <button class="global-chat-btn" id="globalChatBtn" onclick="toggleGlobalChat()" aria-label="Abrir asistente global">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M5 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0zm3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+      <path d="m2.165 15.803.02-.004c1.83-.363 2.948-.842 3.468-1.105A9.06 9.06 0 0 0 8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6a10.437 10.437 0 0 1-.524 2.318l-.003.011a10.722 10.722 0 0 1-.244.637c-.079.186.074.394.273.362a21.673 21.673 0 0 0 .693-.125zm.8-3.108a1 1 0 0 0-.287-.801C1.618 10.83 1 9.468 1 8c0-3.192 3.004-6 7-6s7 2.808 7 6-3.004 6-7 6a8.06 8.06 0 0 1-2.088-.272 1 1 0 0 0-.711.074c-.387.196-1.24.57-2.634.893a10.97 10.97 0 0 0 .398-2z"/>
+    </svg>
+  </button>
+
+  <div class="global-chat-panel" id="globalChatPanel">
+    <div class="global-chat-header">
+      <div>Asistente Global</div>
+      <button class="global-chat-close" onclick="toggleGlobalChat()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="global-chat-messages" id="globalChatMessages">
+      <div class="global-chat-msg bot">
+        Hola, puedo buscar en toda nuestra base documental y responder a tus preguntas sintetizando la información. ¿Qué necesitas saber?
+      </div>
+    </div>
+    <form class="global-chat-input-area" onsubmit="submitGlobalChat(event)">
+      <input type="text" id="globalChatInput" class="global-chat-input" placeholder="Pregunta algo sobre los documentos..." autocomplete="off">
+      <button type="submit" id="globalChatSend" class="global-chat-send" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+        </svg>
+      </button>
+    </form>
+  </div>  <!-- LOGIN MODAL -->
   <div id="loginModal" style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);">
     <div style="background:#ffffff;border-radius:16px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:1rem;">
       <img src="assets/meiga-logo.svg" alt="Meiga" style="width:56px;height:56px;">
@@ -1402,21 +1460,18 @@
   <!-- FILE MANAGER — fixed top-right (hidden until authenticated) -->
   <div id="topBar" style="position:fixed;top:16px;right:20px;z-index:300;display:none;gap:8px;align-items:center;">
     <!-- Subir archivo: visible para admin y editor, oculto para lector -->
-    <button id="uploadBtn" style="display:none;padding:7px 13px;background:#14213d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;align-items:center;gap:5px;"
+    <button id="uploadBtn" class="fm-trigger" style="display:none;"
       onclick="document.getElementById('uploadInput').click()">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
         <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
         <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
       </svg>
-      Subir archivo
+      <span>Subir archivo</span>
     </button>
     <input id="uploadInput" type="file" style="display:none" accept=".pdf,.txt,.csv,.xlsx"
       onchange="if(this.files[0]) uploadDocument(this.files[0])" />
-    <button id="settingsBtn" style="display:none;padding:7px 13px;background:#14213d;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;" onclick="openSettingsModal()">
-      &#9881;&#65039; Ajustes LLM
-    </button>
-    <button id="logoutBtn" style="padding:7px 13px;background:rgba(20,33,61,.08);color:#14213d;border:none;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:600;" onclick="logoutUser()">
-      🚪 Cerrar sesión
+    <button id="settingsBtn" class="fm-trigger" style="display:none;" onclick="openSettingsModal()">
+      &#9881;&#65039; <span>Ajustes LLM</span>
     </button>
     <div style="position:relative;" id="fmContainer">
       <button class="fm-trigger" id="fmTriggerBtn" onclick="toggleFmMenu()" aria-label="Gestionar archivos">
@@ -1462,7 +1517,12 @@
           <span>Limpiar base de datos</span>
         </button>
       </div>
-    </div>
+    </div> <!-- Closes fmContainer -->
+
+    <!-- CERRAR SESIÓN -->
+    <button id="logoutBtn" class="fm-trigger" onclick="logoutUser()">
+      <span>Cerrar sesión</span>
+    </button>
   </div>
   <div class="fm-backdrop" id="fmBackdrop" style="display:none" onclick="closeFmMenu()"></div>
   <div class="fm-backdrop" id="filterBackdrop" style="display:none; z-index:190;"
@@ -1511,14 +1571,13 @@
             <path
               d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z" />
           </svg>
-          <span>Búsqueda directa</span>
+          <span>Búsqueda semántica</span>
         </button>
-        <button class="mode-btn" id="modeDescBtn" onclick="setMode('descriptive')" type="button">
+        <button class="mode-btn" id="modeTextBtn" onclick="setMode('text')" type="button">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-            <path
-              d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828l.645-1.937zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.734 1.734 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.734 1.734 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.734 1.734 0 0 0 3.407 2.31l.387-1.162zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L10.863.1z" />
+            <path d="M2.244 13.081l.943-2.803H6.66l.944 2.803H8.86L5.54 3.75H4.322L1 13.081h1.244zm2.7-7.923L6.34 9.314H3.51l1.4-4.156h.034zm9.146 7.027h.035v.896h1.128V8.125c0-1.51-1.114-2.345-2.646-2.345-1.736 0-2.59.916-2.666 2.174h1.108c.068-.718.595-1.19 1.517-1.19.971 0 1.518.52 1.518 1.464v.731H12.19c-1.647.007-2.522.8-2.522 2.058 0 1.319.957 2.18 2.345 2.18 1.06 0 1.716-.43 2.078-1.011zm-1.763.035c-.752 0-1.456-.397-1.456-1.244 0-.65.424-1.115 1.408-1.115h1.805v.834c0 .896-.752 1.525-1.757 1.525z"/>
           </svg>
-          <span>Búsqueda descriptiva</span>
+          <span>Búsqueda textual</span>
         </button>
       </div>
 
@@ -1630,20 +1689,7 @@
           </svg>
           <p id="emptyText" style="margin:0;font-size:.88rem;text-align:center"></p>
         </div>
-        <!-- Query Expansion Info (LLM) -->
-        <div id="queryExpansionInfo" class="query-expansion-info" style="display:none">
-          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="#8b5cf6" viewBox="0 0 16 16">
-            <path
-              d="M9.669.864 8 0 6.331.864l-1.858.282-.842 1.68-1.337 1.32L2.6 6l-.306 1.854 1.337 1.32.842 1.68 1.858.282L8 12l1.669-.864 1.858-.282.842-1.68 1.337-1.32L13.4 6l.306-1.854-1.337-1.32-.842-1.68L9.669.864zm1.196 1.193.684 1.365 1.086 1.072L12.387 6l.248 1.506-1.086 1.072-.684 1.365-1.51.229L8 10.874l-1.355-.702-1.51-.229-.684-1.365-1.086-1.072L3.614 6l-.25-1.506 1.087-1.072.684-1.365 1.51-.229L8 1.126l1.356.702 1.509.229z" />
-            <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
-          </svg>
-          <div class="content">
-            <div class="label">
-              <span>🤖 Búsqueda Descriptiva Activada</span>
-            </div>
-            <div class="keywords" id="expandedKeywords"></div>
-          </div>
-        </div>
+        <!-- Query Expansion Info removed (descriptive search removed) -->
         <p id="resultsMeta"
           style="display:none;font-size:.78rem;color:rgba(20,33,61,.55);margin:0;padding-bottom: 12px;"></p>
         <div id="resultsList" class="flex flex-col gap-3" style="display:none"></div>
@@ -2008,7 +2054,7 @@
       }
 
       /* ── Search mode ───────────────────────────────────────── */
-      function setMode(m) { currentMode = m; $('modeDirectBtn').classList.toggle('active', m === 'direct'); $('modeDescBtn').classList.toggle('active', m === 'descriptive') }
+      function setMode(m) { currentMode = m; $('modeDirectBtn').classList.toggle('active', m === 'direct'); $('modeTextBtn').classList.toggle('active', m === 'text'); }
 
       /* ── Filter Dropdown ──────────────────────────────────── */
       let filterMenuOpen = false;
@@ -2105,10 +2151,9 @@
       async function performSearch(q) {
         showResultsState('loading');
         $('paginationContainer').style.display = 'none';
-        // Ocultar query expansion info al inicio de nueva búsqueda
-        $('queryExpansionInfo').style.display = 'none';
         try {
-          const p = new URLSearchParams({ q, top_k: 1000, expand: currentMode === 'descriptive' });
+          const isText = currentMode === 'text';
+          const p = new URLSearchParams({ q, top_k: 1000, mode: isText ? 'text' : 'semantic' });
           activeFilters.forEach(t => p.append('type', t));
 
           const minSize = $('filterMinSize').value;
@@ -2136,19 +2181,6 @@
           allResults = data.results;
           currentResultsPage = 1;
           renderResultsPage(false);
-
-          // 🔍 Mostrar información de Query Expansion si se usó el LLM
-          if (data.searchMode === 'descriptive') {
-            const rawExpanded = data.expandedQuery || '';
-            const keywords = rawExpanded.split(',').map(k => k.trim()).filter(k => k);
-            if (keywords.length > 0) {
-              const keywordsHtml = keywords.map(k => `<mark>${esc(k)}</mark>`).join(' ');
-              $('expandedKeywords').innerHTML = `Keywords generadas: ${keywordsHtml}`;
-            } else {
-              $('expandedKeywords').innerHTML = `<span style="opacity:.6">Sin keywords extraídas</span>`;
-            }
-            $('queryExpansionInfo').style.display = 'flex';
-          }
 
           showResultsState('results');
         } catch (e) { $('errorText').textContent = e.message; showResultsState('error') }
@@ -2468,6 +2500,152 @@
           showToast(`Error al subir: ${e.message}`);
         }
       }
+
+      /* ── Global Chat ───────────────────────────────────────── */
+      function toggleGlobalChat() {
+        if (!getToken()) return showToast('Inicia sesión para usar el asistente');
+        const panel = $('globalChatPanel');
+        const isClosed = panel.style.display === 'none' || panel.style.display === '';
+        panel.style.display = isClosed ? 'flex' : 'none';
+        if (isClosed) $('globalChatInput').focus();
+      }
+
+      function addGlobalChatMessage(text, type = 'user', isHtml = false) {
+        const msgs = $('globalChatMessages');
+        const d = document.createElement('div');
+        d.className = `global-chat-msg ${type}`;
+        if (isHtml) d.innerHTML = text;
+        else d.textContent = text;
+        msgs.appendChild(d);
+        msgs.scrollTop = msgs.scrollHeight;
+        return d;
+      }
+
+      let globalChatHistory = [];
+
+      async function submitGlobalChat(e) {
+        e.preventDefault();
+        const input = $('globalChatInput');
+        const btn = $('globalChatSend');
+        const val = input.value.trim();
+        if (!val) return;
+
+        input.value = '';
+        input.disabled = true;
+        btn.disabled = true;
+
+        addGlobalChatMessage(val, 'user');
+        
+        // Creamos el contenedor del bot donde se inyectará el stream
+        const botMsgDiv = addGlobalChatMessage('<div class="global-chat-typing"><span></span><span></span><span></span></div>', 'bot', true);
+
+        try {
+          const r = await fetch('/api/global-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+            body: JSON.stringify({ 
+              pregunta: val,
+              history: globalChatHistory
+            })
+          });
+          
+          if (!r.ok) {
+            const err = await r.json();
+            throw new Error(err.detail || 'Error en el chat');
+          }
+          
+          const reader = r.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          
+          let fullAnswer = "";
+          let sourcesMap = {};
+          let isFirstChunk = true;
+          let buffer = "";
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            buffer += decoder.decode(value, { stream: true });
+            
+            let newlineIndex;
+            // SSE events are separated by double newlines \n\n
+            while ((newlineIndex = buffer.indexOf('\n\n')) >= 0) {
+              const eventStr = buffer.slice(0, newlineIndex).trim();
+              buffer = buffer.slice(newlineIndex + 2);
+              
+              if (eventStr.startsWith('data: ')) {
+                const dataStr = eventStr.substring(6).trim();
+                if (!dataStr) continue;
+                
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.error) throw new Error(data.error);
+                  
+                  if (data.sources) {
+                    sourcesMap = data.sources;
+                  }
+                  
+                  if (data.chunk) {
+                    if (isFirstChunk) {
+                      botMsgDiv.innerHTML = ''; // quitamos el typing animation
+                      isFirstChunk = false;
+                    }
+                    fullAnswer += data.chunk;
+                    botMsgDiv.textContent = fullAnswer;
+                    botMsgDiv.parentElement.scrollTop = botMsgDiv.parentElement.scrollHeight;
+                  }
+                } catch (pe) {
+                  // ignorar si no es json (ej [DONE])
+                  if (pe.message !== "Unexpected end of JSON input" && !dataStr.includes("[DONE]")) {
+                    console.error("Error parseando stream event:", pe, dataStr);
+                  }
+                }
+              }
+            }
+          }
+          
+          // Stream finalizado: Convertimos Markdown completo a HTML
+          let finalHtml = marked.parse(fullAnswer);
+          
+          // Reemplazar citas [1], [2] por badges interactivos
+          finalHtml = finalHtml.replace(/\\[(\\d+)\\]/g, (match, id) => {
+            const srcNames = sourcesMap[id] || "Fuente desconocida";
+            return `<sup style="cursor:help; background:#e2e8f0; padding:2px 4px; border-radius:4px; font-size:0.7em; margin-left:2px;" title="${esc(srcNames)}">${id}</sup>`;
+          });
+          
+          // Añadir cajetín de fuentes al final
+          if (Object.keys(sourcesMap).length > 0) {
+            const sourcesHtml = Object.entries(sourcesMap)
+              .map(([id, src]) => `<span title="ID: ${id}">📄 [${id}] ${esc(src)}</span>`)
+              .join('');
+            finalHtml += `<div class="global-chat-sources">Fuentes utilizadas:<br>${sourcesHtml}</div>`;
+          }
+          
+          botMsgDiv.innerHTML = finalHtml;
+          
+          // Guardar en el historial
+          globalChatHistory.push({ role: 'user', content: val });
+          globalChatHistory.push({ role: 'assistant', content: fullAnswer });
+          
+          // Mantener historial pequeño (ej. max 6 mensajes)
+          if (globalChatHistory.length > 6) {
+            globalChatHistory = globalChatHistory.slice(globalChatHistory.length - 6);
+          }
+          
+        } catch (err) {
+          botMsgDiv.innerHTML = `<em>Error: ${err.message}</em>`;
+        } finally {
+          input.disabled = false;
+          btn.disabled = false;
+          input.focus();
+          botMsgDiv.parentElement.scrollTop = botMsgDiv.parentElement.scrollHeight;
+        }
+      }
+
+      $('globalChatInput').addEventListener('input', e => {
+        $('globalChatSend').disabled = e.target.value.trim().length === 0;
+      });
 
       /* ── Event listeners ───────────────────────────────────── */
       $('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') onSearchSubmit() });
