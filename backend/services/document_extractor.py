@@ -1,14 +1,22 @@
 """
-services/document_extractor.py — Pipeline de procesamiento de documentos.
+services/document_extractor.py — Pipeline de Ingesta y Procesamiento de Documentos.
 
-Soporta múltiples formatos:
-  - PDF  → PyMuPDF (fitz)
-  - TXT  → lectura directa
-  - CSV  → lectura como texto tabular
-  - XLSX → openpyxl, convierte filas a texto
+Este módulo es el corazón de la extracción de conocimiento de Meiga. Soporta una 
+amplia variedad de formatos corporativos, transformando archivos binarios en 
+texto limpio y estructurado listo para ser vectorizado.
 
-Pipeline:
-  extract_document_content() → clean_text() → chunk_text() → deduplicate_chunks()
+Capacidades principales:
+    - Extracción Multi-formato: PDF (PyMuPDF + OCR), Office (Word, PPT, Excel), 
+      Imágenes (Tesseract), Datos (JSON, XML, CSV) y Marcado (MD, HTML).
+    - Metadatos Avanzados: Integración con ExifTool para extraer autoría, software 
+      creador y fechas técnicas.
+    - Inteligencia de Categorización: Heurísticas basadas en palabras clave y 
+      nombres de archivo para auto-clasificar documentos.
+    - Limpieza y Fragmentación: Normalización de texto y "Semantic Chunking" 
+      respetando límites de oraciones.
+
+Pipeline de Procesamiento:
+    extract_document_content() ➔ clean_text() ➔ chunk_text() ➔ deduplicate_chunks()
 """
 
 import csv
@@ -38,20 +46,24 @@ SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".csv", ".xlsx", ".png", ".jpg", ".jpeg"
 
 def extract_document_content(file_path: str) -> tuple[str, dict]:
     """
-    Extrae texto y metadatos básicos de un archivo.
+    Coordina la extracción de texto y la recolección de metadatos de un archivo.
 
-    Formatos soportados: PDF, TXT, CSV, XLSX.
+    Es el punto de entrada principal para procesar cualquier archivo individual. 
+    Detecta el tipo de archivo por su extensión y delega la extracción al 
+    sub-extractor correspondiente.
 
     Args:
-        file_path: Ruta absoluta al archivo.
+        file_path (str): Ruta absoluta al archivo en el sistema de archivos del servidor.
 
     Returns:
-        Tupla (texto_crudo, metadatos_dict).
-        Metadatos incluye: file_size, category, extension.
+        tuple[str, dict]: Una tupla conteniendo:
+            - texto_crudo (str): El contenido textual completo del documento.
+            - metadatos (dict): Diccionario con información técnica (tamaño, autor, 
+              categoría, datos ExifTool).
 
     Raises:
-        FileNotFoundError: Si el archivo no existe.
-        ValueError: Si el formato no es soportado o no hay texto.
+        FileNotFoundError: Si el archivo no existe en la ruta proporcionada.
+        ValueError: Si el formato de archivo no es soportado o no se pudo extraer texto.
     """
     path = Path(file_path)
     if not path.exists():
@@ -100,6 +112,7 @@ def extract_document_content(file_path: str) -> tuple[str, dict]:
     try:
         import subprocess
         import json
+        from datetime import datetime
         result = subprocess.run(
             ["exiftool", "-j", str(path)],
             capture_output=True,
@@ -113,14 +126,32 @@ def extract_document_content(file_path: str) -> tuple[str, dict]:
                 for k in ["Directory", "SourceFile", "FileName", "ExifToolVersion"]:
                     exif_data.pop(k, None)
                 metadata["exif_metadata"] = exif_data
-                
+
                 # Intentar extraer el año (YYYY) de CreateDate o FileModifyDate para filtrado numérico en Qdrant
                 date_str = exif_data.get("CreateDate") or exif_data.get("FileModifyDate")
                 if date_str and isinstance(date_str, str) and len(date_str) >= 4:
                     try:
                         metadata["exif_year"] = int(date_str[:4])
+                        # Intentar extraer mes (MM) también
+                        if len(date_str) >= 7:
+                            try:
+                                month = int(date_str[5:7])
+                                if 1 <= month <= 12:
+                                    metadata["exif_month"] = month
+                            except (ValueError, IndexError):
+                                pass
                     except ValueError:
                         pass
+
+                # Extraer y almacenar explícitamente Author
+                author = exif_data.get("Author")
+                if author and isinstance(author, str) and author.strip():
+                    metadata["author"] = author.strip()
+
+                # Extraer y almacenar explícitamente Creator (ej., software que creó el PDF)
+                creator = exif_data.get("Creator")
+                if creator and isinstance(creator, str) and creator.strip():
+                    metadata["creator"] = creator.strip()
     except Exception as e:
         logger.warning(f"No se pudo extraer metadata ExifTool para {file_path}: {e}")
     
@@ -133,8 +164,22 @@ def extract_document_content(file_path: str) -> tuple[str, dict]:
 
 def _infer_category(text: str, ext: str, filename: str = "") -> str:
     """
-    Infiere la categoría corporativa usando heurísticas avanzadas.
-    Combina análisis del contenido + nombre del archivo con pesos diferenciados.
+    Aplica heurísticas lingüísticas para clasificar el documento automáticamente.
+
+    Combina el análisis de palabras clave en el contenido con el análisis del 
+    nombre del archivo. Se asignan pesos mayores (3x) a las coincidencias en el 
+    nombre del archivo, ya que suelen ser más indicativas del propósito del documento.
+
+    Categorías soportadas: RRHH, Finanzas, Legal, Técnico, Comercial, 
+    Sostenibilidad, IT/Soporte y General.
+
+    Args:
+        text (str): El texto extraído (se analizan los primeros 8000 caracteres).
+        ext (str): Extensión del archivo para sesgos de formato.
+        filename (str): Nombre del archivo (sin ruta) para análisis de contexto.
+
+    Returns:
+        str: Nombre de la categoría más probable.
     """
     text_lower = text[:8000].lower()
     filename_lower = filename.lower() if filename else ""
@@ -208,7 +253,21 @@ def _infer_category(text: str, ext: str, filename: str = "") -> str:
 
 
 def _extract_pdf(file_path: str) -> tuple[str, dict]:
-    """Extrae texto de un PDF usando PyMuPDF. Si falla o no encuentra texto útil, usa OCR."""
+    """
+    Extrae texto de documentos PDF con una estrategia híbrida robusta.
+
+    1. Intento Digital (PyMuPDF): Extrae capas de texto digital, siendo 
+       el método más rápido y preciso.
+    2. Fallback de OCR (Tesseract): Si el PDF está escaneado o tiene 
+       muy poco texto (como faxes o imágenes), se activa el reconocimiento 
+       óptico de caracteres página a página.
+
+    Args:
+        file_path (str): Ruta al PDF.
+
+    Returns:
+        tuple: (texto_extraído, metadatos_nativos_pdf).
+    """
     try:
         doc = fitz.open(file_path)
     except Exception as e:
@@ -256,7 +315,21 @@ def _extract_pdf(file_path: str) -> tuple[str, dict]:
 
 
 def _extract_img(file_path: str) -> tuple[str, dict]:
-    """Extrae texto de una imagen nativa (PNG, JPG) usando Tesseract OCR."""
+    """
+    Extrae texto de archivos de imagen (PNG, JPG, JPEG) mediante OCR.
+
+    Utiliza Tesseract OCR con modelos de lenguaje dual (español e inglés) 
+    para maximizar la precisión en documentos técnicos bilingües.
+
+    Args:
+        file_path (str): Ruta a la imagen.
+
+    Returns:
+        tuple[str, dict]: Texto extraído y diccionario de metadatos (vacío por defecto).
+
+    Raises:
+        ValueError: Si Tesseract no está instalado o falló el procesamiento.
+    """
     if not OCR_AVAILABLE:
         raise ValueError("Tesseract OCR no está instalado. No se pueden procesar imágenes puras.")
     
@@ -281,8 +354,11 @@ def _extract_txt(file_path: str) -> tuple[str, dict]:
 
 def _extract_csv(file_path: str) -> tuple[str, dict]:
     """
-    Lee un CSV y lo convierte en texto legible.
-    Cada fila se convierte en: "columna1: valor1 | columna2: valor2 | ..."
+    Transforma un archivo CSV en una representación textual legible de "clave: valor".
+    
+    Cada fila del CSV se convierte en una línea de texto donde las columnas 
+    están precedidas por su nombre de cabecera. Esto facilita la búsqueda 
+    semántica al mantener el contexto de cada campo.
     """
     lines = []
     with open(file_path, "r", encoding="utf-8", errors="replace") as f:
@@ -412,13 +488,17 @@ def _extract_html(file_path: str) -> tuple[str, dict]:
 
 def clean_text(text: str) -> str:
     """
-    Limpia el texto crudo extraído.
+    Limpia y normaliza el texto crudo extraído de los documentos.
+
+    Este paso es fundamental para eliminar el "ruido" que introducen los 
+    diversos extractores (saltos de línea huérfanos, números de página 
+    aislados, espacios múltiples) y preparar el texto para una indexación 
+    de calidad.
 
     Operaciones:
-      - Normaliza espacios en blanco
-      - Elimina líneas que son solo números (pies de página)
-      - Colapsa saltos de línea excesivos
-      - Strip de cada línea
+        - Colapsa espacios en blanco.
+        - Elimina líneas numéricas (típicas de pies de página).
+        - Normaliza párrafos colapsando saltos de línea excesivos.
     """
     text = re.sub(r'[^\S\n\t]+', ' ', text)
     text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)
@@ -430,18 +510,22 @@ def clean_text(text: str) -> str:
 
 def chunk_text(text: str, size: int = 1000, overlap: int = 200) -> list[str]:
     """
-    Fragmenta el texto en chunks con solapamiento, respetando límites de oración.
+    Divide el texto en fragmentos (chunks) manejables para el LLM.
 
-    Intenta cortar en finales de oración para preservar el contexto semántico.
-    Si no encuentra un final de oración, corta en el último espacio.
+    Implementa una estrategia de "Semantic Chunking" básico:
+        1. Intenta romper por finales de oración (. ! ?) para no cortar 
+           ideas a la mitad.
+        2. Si no es posible, corta en el último espacio disponible.
+        3. Mantiene un solapamiento (overlap) entre fragmentos para preservar 
+           la continuidad del contexto semántico en las búsquedas.
 
     Args:
-        text: Texto limpio.
-        size: Tamaño máximo de cada chunk (caracteres).
-        overlap: Solapamiento entre chunks.
+        text (str): Texto limpio y normalizado.
+        size (int): Límite máximo de caracteres por fragmento.
+        overlap (int): Cantidad de caracteres que se repiten en el siguiente fragmento.
 
     Returns:
-        Lista de chunks.
+        list[str]: Lista de fragmentos listos para ser vectorizados.
     """
     if not text:
         return []
@@ -499,13 +583,14 @@ STOP_WORDS_ES_EN = {
 
 def normalize_query(query: str) -> str:
     """
-    Normaliza una query de búsqueda para mejorar la precisión.
+    Optimiza la consulta de búsqueda eliminando términos irrelevantes.
 
-    Operaciones:
-      - Strip de espacios
-      - Colapsar espacios múltiples
-      - Eliminar puntuación huérfana al inicio/final
-      - Eliminar stop words (artículos, preposiciones)
+    Este pre-procesamiento mejora la precisión de la búsqueda híbrida al 
+    centrarse en las palabras con carga semántica, eliminando artículos 
+    y preposiciones (Stop Words) comunes en español e inglés.
+
+    Returns:
+        str: Consulta normalizada y limpia.
     """
     query = query.strip()
     query = re.sub(r'\s+', ' ', query)
@@ -517,7 +602,10 @@ def normalize_query(query: str) -> str:
 
 def deduplicate_chunks(chunks: list[str]) -> list[str]:
     """
-    Elimina chunks duplicados (SHA256). Preserva orden original.
+    Elimina fragmentos idénticos basándose en su hash SHA256.
+
+    Evita la redundancia en la base de datos vectorial si un documento 
+    repite oraciones o párrafos exactos (ej. avisos legales recurrentes).
     """
     seen: set[str] = set()
     unique: list[str] = []

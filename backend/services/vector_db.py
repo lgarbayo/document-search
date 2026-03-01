@@ -1,20 +1,27 @@
 """
-services/vector_db.py — Wrapper sobre Qdrant + Abstracción de Embeddings.
+services/vector_db.py — Capa de Persistencia Vectorial y Generación de Embeddings.
+
+Este módulo actúa como el puente entre el procesamiento de documentos y el motor 
+de búsqueda semántica Qdrant. Gestiona la transformación de texto en vectores 
+numéricos (embeddings) y su almacenamiento estructurado para permitir 
+recuperación de información a escala corporativa.
 
 Responsabilidades:
-  1. Conectar con Qdrant (vector DB)
-  2. Crear/verificar la colección de vectores
-  3. Insertar chunks vectorizados
-  4. Buscar por similitud coseno
-  5. Generar embeddings (sentence-transformers u OpenAI)
+    1. Gestión de Proveedores de Embeddings: Abstracción para alternar entre 
+       modelos locales (Sentence-Transformers) y en la nube (OpenAI).
+    2. Ciclo de Vida de Colecciones: Creación, verificación e indexación 
+       automática de colecciones en Qdrant.
+    3. Ingesta Estructurada (Upsert): Inserción masiva de fragmentos con 
+       metadatos asociados (Páginas, Autores, ExifTool).
+    4. Búsqueda Híbrida: Implementación de algoritmos de búsqueda que combinan 
+       proximidad semántica (vectores) con filtros léxicos precisos.
+    5. Seguridad (RBAC): Filtrado de resultados en base a niveles de visibilidad.
 
-Uso:
-    from services.vector_db import VectorDBService
-
+Uso Sugerido:
     vdb = VectorDBService()
     vdb.ensure_collection()
-    vdb.upsert(chunks=["Hola mundo"], metadata=[{"source": "test.pdf"}])
-    results = vdb.search("Hola", top_k=3)
+    vdb.upsert(chunks=["Contenido..."], metadata=[{"source": "doc.pdf"}])
+    results = await vdb.hybrid_search("consulta", "consulta_lexica")
 """
 
 import uuid
@@ -44,18 +51,18 @@ from core.config import settings
 # ═══════════════════════════════════════════════════════════════
 
 class EmbeddingProvider(ABC):
-    """Interfaz abstracta para generar embeddings."""
+    """Interfaz abstracta para homogeneizar diversos motores de vectorización."""
 
     @abstractmethod
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
-        Genera embeddings para una lista de textos.
+        Transforma una lista de cadenas de texto en sus correspondientes vectores.
 
         Args:
-            texts: Lista de strings a vectorizar.
+            texts (list[str]): Fragmentos de texto a procesar.
 
         Returns:
-            Lista de vectores (cada uno es una lista de floats).
+            list[list[float]]: Lista de vectores de alta dimensión.
         """
         ...
 
@@ -67,10 +74,10 @@ class EmbeddingProvider(ABC):
 
 class SentenceTransformerProvider(EmbeddingProvider):
     """
-    Embeddings usando sentence-transformers (local, gratis).
+    Proveedor de embeddings local basado en la librería Sentence-Transformers.
 
-    Modelo por defecto: all-MiniLM-L6-v2 (384 dims, ~80MB)
-    Es rápido y suficientemente bueno para un hackathon.
+    Ideal para entornos desconectados o para minimizar costes, ejecutando
+    los modelos directamente en la CPU/GPU del servidor.
     """
 
     def __init__(self, model_name: str = None):
@@ -135,10 +142,11 @@ def get_embedding_provider() -> EmbeddingProvider:
 
 class VectorDBService:
     """
-    Servicio de base de datos vectorial.
+    Servicio principal de interacción con la Base de Datos Vectorial.
 
-    Encapsula toda la interacción con Qdrant y la generación de embeddings.
-    Cada instancia crea su propio cliente Qdrant y su embedding provider.
+    Encapsula la complejidad técnica de Qdrant y la lógica de negocio 
+    relacionada con la persistencia de fragmentos de documentos.
+    Utiliza el patrón Singleton indirecto mediante el embedding provider configurado.
     """
 
     def __init__(self):
@@ -151,10 +159,13 @@ class VectorDBService:
 
     def ensure_collection(self):
         """
-        Crea la colección en Qdrant si no existe.
-        Si ya existe, no hace nada (idempotente).
-        También asegura que el text index sobre el campo 'text' esté creado
-        para habilitar búsquedas léxicas (hybrid search).
+        Garantiza la existencia y configuración óptima de la colección en Qdrant.
+
+        Este método es idempotente. Si la colección no existe:
+            1. La crea con la dimensión adecuada según el embedding provider.
+            2. Configura la métrica de distancia COSINE (estándar para texto).
+            3. Inicializa un índice de carga (payload index) sobre el campo 'text' 
+               con tokenización por palabras para habilitar búsquedas léxicas rápidas.
         """
         collections = self.client.get_collections().collections
         existing_names = [c.name for c in collections]
@@ -187,15 +198,20 @@ class VectorDBService:
 
     def upsert(self, chunks: list[str], metadata: list[dict]) -> int:
         """
-        Vectoriza los chunks y los inserta en Qdrant.
+        Transforma fragmentos de texto en vectores y los persiste en Qdrant.
+
+        Proceso:
+            1. Vectorización: Envía los chunks al embedder (Local o API).
+            2. Estructuración: Empaqueta cada vector con su ID único (UUIDv4) 
+               y sus metadatos asociados.
+            3. Inserción: Realiza una operación de 'upsert' masiva por eficiencia.
 
         Args:
-            chunks: Lista de textos a insertar.
-            metadata: Lista de dicts con metadatos (source, page, etc.).
-                      Debe tener la misma longitud que chunks.
+            chunks (list[str]): Textos limpios para indexar.
+            metadata (list[dict]): Metadatos enriquecidos (fuente, página, etc.).
 
         Returns:
-            Número de puntos insertados.
+            int: Cantidad de fragmentos insertados exitosamente.
         """
         if not chunks:
             return 0
@@ -234,16 +250,22 @@ class VectorDBService:
         role: str = "normal",
     ) -> list[dict]:
         """
-        Busca los chunks más similares a la query, con filtros dinámicos.
+        Ejecuta una búsqueda puramente semántica (vectorial) con filtros dinámicos.
+
+        Utiliza la similitud del coseno para encontrar los fragmentos que más se 
+        aproximan al significado de la consulta. Implementa seguridad a nivel de 
+        registro (RBAC) ocultando automáticamente documentos 'admin_only'.
 
         Args:
-            query: Texto de búsqueda.
-            top_k: Número de resultados a devolver.
-            filters: Diccionario de metadatos exactos a filtrar (ej. {"category": "RRHH"}).
-            range_filters: Diccionario de metadatos de rango a filtrar (ej. {"file_size_bytes": {"gte": 1000, "lte": 5000}}).
+            query (str): Pregunta o términos del usuario.
+            top_k (int): Cantidad máxima de resultados.
+            filters (dict): Filtros de categoría o extensión (operadores OR internos).
+            range_filters (dict): Filtros numéricos para fechas o tamaños.
+            exact_filters (dict): Coincidencias exactas (ej. autores).
+            role (str): Rol del usuario para control de visibilidad.
 
         Returns:
-            Lista de dicts con: text, score, source, y otros metadatos.
+            list[dict]: Lista de resultados formateados con texto y score de relevancia.
         """
         # Asegurarse de que la colección existe
         # (Idealmente en contexto async esto debería delegarse a un thread también, pero es muy rápido)
@@ -352,9 +374,13 @@ class VectorDBService:
         role: str = "normal",
     ) -> list[dict]:
         """
-        Búsqueda textual exacta (tipo Ctrl+F).
-        Usa scroll + MatchText sobre el índice full-text del campo 'text'.
-        No genera embeddings — es rápida y literal.
+        Realiza una búsqueda léxica literal (estilo Grep / Ctrl+F).
+
+        A diferencia de la búsqueda semántica, este método busca coincidencias 
+        exactas de caracteres utilizando el índice de texto de Qdrant. Es ideal 
+        para encontrar códigos técnicos, IDs de empleados o términos muy específicos.
+
+        Calcula un score sintético basado en la frecuencia de aparición del término.
         """
         await asyncio.to_thread(self.ensure_collection)
 
@@ -461,24 +487,23 @@ class VectorDBService:
         role: str = "lector",
     ) -> list[dict]:
         """
-        Búsqueda híbrida: semántica + léxica en paralelo con fusión de resultados.
+        Ejecuta una búsqueda combinada (híbrida) para máxima precisión.
 
-        Ejecuta dos búsquedas simultáneas:
-          1. Semántica pura (vectores)
-          2. Semántica + filtro léxico (MatchText sobre 'text')
+        Este algoritmo combina lo mejor de dos mundos:
+            1. Búsqueda Vectorial (Semántica): Entiende conceptos y sinónimos.
+            2. Búsqueda Léxica (Palabras Clave): Encuentra términos exactos.
 
-        Los resultados que coinciden léxicamente reciben un boost de score (×1.15),
-        lo que los sube al top del ranking sin eliminar resultados puramente semánticos.
-
-        RBAC: Los documentos con visibility="admin_only" se excluyen para roles
-        que no sean admin, via filtro must_not de Qdrant.
+        Los resultados que aparecen en ambas búsquedas reciben un "Boost" 
+        multiplicativo (1.15x), lo que garantiza que los documentos que 
+        coinciden exacta y semánticamente suban al top del ranking. 
+        También aplica las reglas de visibilidad RBAC.
 
         Args:
-            query: Texto de búsqueda (se vectoriza).
-            query_text: Texto para el filtro léxico (palabras clave a buscar literalmente).
-            top_k: Número de resultados finales.
-            filters: Filtros adicionales de metadatos (category, extension, etc.).
-            role: Rol del usuario que realiza la búsqueda.
+            query (str): Texto para la vectorización.
+            query_text (str): Texto para la coincidencia léxica.
+            top_k (int): Resultados finales a devolver.
+            filters (dict): Metadatos para filtrado previo.
+            role (str): Rol del usuario (Lector, Editor o Admin).
         """
         await asyncio.to_thread(self.ensure_collection)
 
@@ -615,8 +640,11 @@ class VectorDBService:
 
     async def get_by_source(self, source: str) -> list[dict]:
         """
-        Recupera TODOS los chunks indexados de un archivo fuente.
-        Usa scroll (no search) para no necesitar un vector query.
+        Recupera la totalidad de los fragmentos asociados a un archivo específico.
+
+        Utiliza una operación de 'scroll' sobre Qdrant para obtener todos los 
+        metadatos y textos sin necesidad de realizar una búsqueda por similitud. 
+        Útil para reconstruir documentos para chat o visualización.
         """
         await asyncio.to_thread(self.ensure_collection)
 
@@ -655,7 +683,12 @@ class VectorDBService:
         return formatted
 
     async def update_document_summary(self, source: str, summary: str) -> None:
-        """Guarda o actualiza el resumen de un documento en todos sus chunks en Qdrant."""
+        """
+        Persiste un resumen generado por IA en todos los fragmentos de un documento.
+
+        Permite implementar una caché de resúmenes directamente en la base de 
+        datos vectorial, evitando llamadas redundantes al LLM en el futuro.
+        """
         await asyncio.to_thread(self.ensure_collection)
         await asyncio.to_thread(
             self.client.set_payload,

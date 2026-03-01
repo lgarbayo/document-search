@@ -1,16 +1,19 @@
 """
-workers/tasks.py — Tareas de Celery (el motor pesado).
+workers/tasks.py — Orquestación del Pipeline de Ingesta (Celery Tasks).
 
-Contiene la tarea `process_document` que ejecuta la pipeline completa:
-  1. Extraer texto del PDF (PyMuPDF)
-  2. Limpiar texto (regex)
-  3. Fragmentar en chunks con solapamiento
-  4. Deduplicar chunks (SHA256)
-  5. Vectorizar y guardar en Qdrant
+Este módulo define la lógica de ejecución pesada que se procesa en segundo plano 
+para evitar bloquear la API principal. Implementa una pipeline de 5 etapas para 
+transformar documentos crudos en conocimiento indexado y buscable.
 
-Esta tarea se ejecuta en BACKGROUND — nunca bloquea FastAPI.
-Se dispara desde el endpoint POST /api/upload con:
-    process_document.delay(file_path, original_filename)
+Etapas del Pipeline:
+    1. Extracción: Obtiene texto y metadatos (PDF, Office, Imágenes mediante OCR).
+    2. Limpieza: Normaliza el texto eliminando ruidos y artefactos de extracción.
+    3. Resumen (Best-effort): Genera una síntesis con IA para pre-visualización rápida.
+    4. Fragmentación (Chunking): Divide el texto preservando el contexto semántico.
+    5. Indexación: Vectoriza los fragmentos y los persiste en la base de datos Qdrant.
+
+Invocación:
+    Disparado asíncronamente desde los endpoints de carga de archivos.
 """
 
 import logging
@@ -30,19 +33,23 @@ logger = logging.getLogger(__name__)
 @celery_app.task(bind=True, name="workers.tasks.process_document")
 def process_document(self, file_path: str, original_filename: str) -> dict:
     """
-    Pipeline completa de procesamiento de un documento.
+    Ejecuta el ciclo de vida completo de ingesta de un documento.
+
+    Utiliza `self.update_state` para reportar el progreso granular al frontend, 
+    permitiendo que el usuario vea en qué etapa exacta (Extracción, Limpieza, etc.) 
+    se encuentra su archivo.
 
     Args:
-        self: Referencia a la tarea (bind=True) para actualizar estado.
-        file_path: Ruta al archivo PDF guardado en el servidor.
-        original_filename: Nombre original del archivo subido.
+        self (Task): Referencia a la tarea para gestión de estados.
+        file_path (str): Ruta al archivo temporal en el servidor.
+        original_filename (str): Nombre del archivo para visualización en resultados.
 
     Returns:
-        dict con metadata del procesamiento:
-          - status: "completed"
-          - filename: nombre original
-          - total_chunks: número de chunks insertados
-          - unique_chunks: chunks tras deduplicación
+        dict: Estadísticas finales del procesamiento (fragmentos generados, 
+              duplicados eliminados, etc.).
+
+    Raises:
+        Exception: Cualquier error crítico abortará la tarea y se registrará en Redis.
     """
     try:
         # ── Paso 1: Extraer texto y metadatos ──

@@ -1,10 +1,15 @@
 """
-api/routes.py — Endpoints de la API.
+api/routes.py — Enrutamiento y Lógica Principal de la API.
 
-Tres endpoints:
-  POST /api/upload       → Sube un PDF, dispara procesamiento async
-  GET  /api/search       → Búsqueda semántica sobre los documentos
-  GET  /api/status/{id}  → Estado de una tarea de procesamiento
+Este módulo define todos los endpoints RESTful para la aplicación Meiga,
+organizándolos en grupos lógicos: Autenticación, Ingesta de Documentos,
+Búsqueda y Recuperación, Chat (RAG) y Administración del Sistema.
+
+Características clave:
+    - Endpoints protegidos por JWT con RBAC (Control de Acceso Basado en Roles).
+    - Procesamiento asíncrono de documentos mediante Celery.
+    - Búsqueda híbrida (Semántica + Palabras clave) con Qdrant.
+    - Chat RAG global con soporte para citaciones.
 """
 
 import os
@@ -19,7 +24,10 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Request, 
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
-from api.auth import get_current_user, require_admin, require_admin_or_editor, USERS, create_token, pwd_context
+from api.auth import (
+    get_current_user, require_admin, require_admin_or_editor, 
+    USERS, create_token, pwd_context
+)
 from workers.tasks import process_document
 from services.vector_db import VectorDBService
 from services.document_extractor import SUPPORTED_EXTENSIONS, normalize_query
@@ -28,6 +36,7 @@ from celery.result import AsyncResult
 
 logger = logging.getLogger(__name__)
 
+# Inicialización del router principal. Las etiquetas (tags) ayudan a organizar la documentación en Swagger UI.
 router = APIRouter()
 
 
@@ -52,9 +61,7 @@ async def login(body: LoginRequest):
     return {"access_token": token, "token_type": "bearer", "role": user["role"]}
 
 
-# ═══════════════════════════════════════════════════════════════
-#  POST /api/upload — Ingesta de documentos
-# ═══════════════════════════════════════════════════════════════
+# ── Endpoints de Ingesta de Documentos ───────────────────────────
 
 @router.post("/upload", tags=["Ingesta"])
 async def upload_document(
@@ -62,74 +69,88 @@ async def upload_document(
     current_user: dict = Depends(require_admin_or_editor),
 ):
     """
-    Sube un documento para procesamiento asíncrono.
+    Sube un documento para su procesamiento asíncrono en segundo plano.
 
-    Requiere rol `admin` o `editor`.
-    El archivo se persiste en ./sharepoint_data en el servidor central
-    antes de encolarse en Celery.
+    Este endpoint actúa como la puerta de entrada para la pipeline de documentos:
+        1. Valida la extensión del archivo comparándola con los tipos soportados.
+        2. Persiste el archivo binario en el directorio central 'sharepoint_data'.
+        3. Dispara una tarea de Celery para realizar la extracción de texto e indexación.
 
-    Formatos soportados: PDF, TXT, CSV, XLSX.
+    Args:
+        file (UploadFile): El documento binario enviado por el cliente.
+        current_user (dict): Payload del usuario validado (admin o editor).
+
+    Returns:
+        JSONResponse: Estado 202 Accepted con el ID de la tarea de Celery.
+
+    Nota: El estado del procesamiento debe consultarse vía /api/status/{task_id}.
     """
-    # Validar tipo de archivo
+    # Validación de extensión — salida temprana para ahorrar recursos
     ext = Path(file.filename).suffix.lower()
     if ext not in SUPPORTED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail=f"Formato no soportado: {ext}. Válidos: {', '.join(SUPPORTED_EXTENSIONS)}"
+            detail=f"Formato no soportado: {ext}. Permitidos: {', '.join(SUPPORTED_EXTENSIONS)}"
         )
 
-    # Carpeta de persistencia centralizada (SharePoint-style)
+    # Capa de persistencia: guardamos el archivo original para permitir
+    # re-indexación o revisión manual. La ruta está centralizada.
     upload_dir = Path("./sharepoint_data")
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    # Guardar archivo en disco
     file_path = upload_dir / file.filename
     try:
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
         logger.info(
-            f"📁 Archivo guardado en sharepoint_data: {file_path} "
-            f"({len(content)} bytes) por usuario={current_user.get('sub')} rol={current_user.get('role')}"
+            f"📁 Archivo guardado: {file_path} ({len(content)} bytes) "
+            f"por usuario={current_user.get('sub')}"
         )
     except Exception as e:
+        logger.error(f"Error de persistencia: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error guardando el archivo: {e}"
+            detail=f"Error interno al guardar el documento: {e}"
         )
 
-    # Disparar tarea de Celery (async, no bloquea FastAPI)
+    # Disparar tarea a Celery worker (llamada no bloqueante)
     task = process_document.delay(str(file_path), file.filename)
 
-    logger.info(f"🚀 Tarea disparada: {task.id} para {file.filename}")
+    logger.info(f"🚀 Tarea de Celery disparada: {task.id} para {file.filename}")
 
     return JSONResponse(
         status_code=202,
         content={
-            "message": "Documento recibido. Procesamiento en curso.",
+            "message": "Documento recibido. Procesamiento iniciado.",
             "task_id": task.id,
             "filename": file.filename,
         }
     )
 
 
-# ═══════════════════════════════════════════════════════════════
-#  GET /api/status/{task_id} — Estado de la tarea
-# ═══════════════════════════════════════════════════════════════
+# ── Endpoints de Ingesta y Estado ────────────────────────────────
 
 @router.get("/status/{task_id}", tags=["Ingesta"])
 async def get_task_status(task_id: str):
     """
-    Consulta el estado de una tarea de procesamiento.
+    Consulta el estado actual de una tarea de procesamiento de documentos.
+
+    Este endpoint permite al frontend realizar un seguimiento (polling) para 
+    mostrar el progreso en tiempo real al usuario.
 
     Estados posibles:
-      - PENDING: La tarea está en la cola, esperando un worker.
-      - PROCESSING: El worker está procesándola (con detalle del paso actual).
-      - SUCCESS: Procesamiento completado exitosamente.
-      - FAILURE: Error durante el procesamiento.
+        - PENDING: La tarea está en cola, esperando un worker.
+        - PROCESSING: El worker está trabajando (incluye detalle del paso actual).
+        - SUCCESS: Procesamiento completado exitosamente. No garantiza que todos los 
+                   fragmentos se insertaran, sino que la pipeline terminó.
+        - FAILURE: Se produjo un error crítico durante el procesamiento.
+
+    Args:
+        task_id (str): El identificador único de la tarea de Celery.
 
     Returns:
-        Estado actual + metadata del resultado si completó.
+        dict: Estado actual, y metadatos o resultado si la tarea ha finalizado.
     """
     result = AsyncResult(task_id)
 
@@ -138,52 +159,56 @@ async def get_task_status(task_id: str):
         "status": result.status,
     }
 
-    # Si está en proceso, incluir info del paso actual
+    # Si la tarea está en proceso, incluimos el detalle del paso enviado por el worker.
     if result.state == "PROCESSING":
         response["detail"] = result.info
 
-    # Si completó, incluir el resultado
+    # Si la tarea terminó con éxito, adjuntamos el objeto resultado.
     elif result.state == "SUCCESS":
         response["result"] = result.result
 
-    # Si falló, incluir el error
+    # Si la tarea falló, el objeto 'info' suele contener la descripción del error.
     elif result.state == "FAILURE":
-        response["error"] = str(result.result)
+        response["error"] = str(result.info)
 
     return response
 
 
-# ═══════════════════════════════════════════════════════════════
-#  GET /api/search — Búsqueda semántica
-# ═══════════════════════════════════════════════════════════════
+# ── Búsqueda y Recuperación (RAG) ───────────────────────────────
 
 @router.get("/search", tags=["Búsqueda"])
 async def search_documents(
     request: Request,
-    q: str = Query(..., min_length=1, description="Texto de búsqueda"),
-    top_k: int = Query(30, ge=1, le=1000, description="Número de resultados"),
-    type: list[str] = Query(None, description="Filtrar por tipo de documento"),
-    mode: str = Query("semantic", description="Modo: semantic | text"),
+    q: str = Query(..., min_length=1, description="Texto de la consulta"),
+    top_k: int = Query(30, ge=1, le=1000, description="Número máximo de resultados"),
+    type: list[str] = Query(None, description="Filtrar por tipo de documento (catálogo)"),
+    mode: str = Query("semantic", description="Modo de búsqueda: semantic | text"),
     min_size: int = Query(None, ge=0, description="Tamaño mínimo en bytes"),
     max_size: int = Query(None, ge=0, description="Tamaño máximo en bytes"),
-    author: str = Query(None, description="Filtrar por autor del documento"),
+    author: str = Query(None, description="Filtrar por autor declarado en metadatos"),
+    creator: str = Query(None, description="Filtrar por creador (software)"),
+    year: int = Query(None, ge=1900, le=2100, description="Filtrar por año de creación"),
+    month: int = Query(None, ge=1, le=12, description="Filtrar por mes de creación"),
     min_year: int = Query(None, ge=1900, description="Año mínimo de creación/modificación"),
     max_year: int = Query(None, ge=1900, description="Año máximo de creación/modificación"),
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Búsqueda sobre los documentos indexados.
+    Endpoint principal de búsqueda sobre los documentos indexados.
 
-    Modos de búsqueda:
-      1. semantic (defecto): Búsqueda híbrida semántica + léxica
-      2. text: Búsqueda textual exacta (tipo Ctrl+F)
-      3. descriptive (expand=true): Expande la consulta con LLM
+    Soporta múltiples modos de operación:
+        1. semantic (por defecto): Búsqueda híbrida (vectorial + filtros de metadatos).
+        2. text: Búsqueda textual exacta (estilo búsqueda en documento local).
+        3. descriptive (expand=true): Utiliza un LLM para expandir la consulta.
 
-    Fallback automático: Si la búsqueda semántica no devuelve resultados,
-    se activa automáticamente el modo descriptivo.
+    Flujo de ejecución:
+        1. Normaliza la consulta y valida los parámetros.
+        2. Construye filtros complejos de Qdrant basados en metadatos (ExifTool, tipos, fechas).
+        3. Aplica restricciones de seguridad RBAC.
+        4. Realiza la búsqueda en el motor vectorial y retorna resultados paginados.
 
-    Devuelve respuesta en el formato esperado por el frontend:
-    SearchResponse { results, total, page, pageSize, durationMs, queryEchoed }
+    Returns:
+        SearchResponse: Objeto con resultados, total, página y duración del proceso.
     """
     try:
         start_time = time.time()
@@ -220,15 +245,20 @@ async def search_documents(
                 
         exact_filters = {}
         if author:
-            # Map top-level `author` query param explicitly to the `Author` field inside ExifTool metadata
-            exact_filters["exif_metadata.Author"] = author
+            exact_filters["author"] = author
+        if creator:
+            exact_filters["creator"] = creator
+        if year:
+            exact_filters["exif_year"] = year
+        if month:
+            exact_filters["exif_month"] = month
 
         # Dynamic ExifTool Filters
         # Any query param starting with 'exif_' will be treated as an exact match for exif_metadata.{Key}
         for key, value in request.query_params.items():
             if key.startswith("exif_") and value:
                 real_key = key[5:] # remove "exif_"
-                
+
                 # Inferencia básica de tipos para que MatchValue de Qdrant coincida
                 if value.isdigit():
                     value = int(value)
@@ -237,7 +267,7 @@ async def search_documents(
                         value = float(value)
                     except ValueError:
                         pass # dejarlo como string
-                        
+
                 exact_filters[f"exif_metadata.{real_key}"] = value
 
         range_filters = {}
@@ -496,7 +526,22 @@ async def global_rag_chat(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Chat RAG global con Streaming (SSE), Memoria y Citas Precisas.
+    Chat RAG global con Streaming (SSE), memoria de conversación y citación de fuentes.
+
+    Este es el endpoint de IA más avanzado de la plataforma. Realiza una búsqueda
+    en todo el conocimiento corporativo para responder preguntas complejas.
+
+    Flujo de ejecución:
+        1. Recuperación (Retrieval): Busca los fragmentos más relevantes en Qdrant.
+        2. Aumentación (Augmentation): Construye un contexto enriquecido con IDs de fuentes.
+        3. Generación (Generation): Envía el contexto y la pregunta al LLM en modo streaming.
+
+    Args:
+        body (GlobalChatRequest): Contiene la pregunta y el historial de chat.
+        current_user (dict): Usuario autenticado.
+
+    Returns:
+        StreamingResponse: Flujo de eventos (SSE) con los tokens generados y el mapa de fuentes.
     """
     try:
         from services.llm_service import get_llm_service
@@ -590,15 +635,22 @@ async def chat_document(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Responde una pregunta sobre un documento usando el LLM configurado.
+    Inicia una conversación enfocada en un único documento específico.
 
-    Flujo:
-      1. Recupera todos los chunks del documento desde Qdrant (por source)
-      2. Concatena el texto como contexto (hasta 5 000 caracteres)
-      3. Llama a llm_service.chat(pregunta, contexto) en un thread
-      4. Devuelve la respuesta generada
+    Ideal para extraer detalles, cifras o resúmenes de archivos extensos sin
+    el ruido de otros documentos de la base de datos.
 
-    El proveedor LLM activo se controla con la variable LLM_PROVIDER.
+    Proceso:
+        1. Recupera todos los fragmentos del documento identificados por su fuente.
+        2. Concatena el texto (con un límite de seguridad para la ventana de contexto).
+        3. Realiza la inferencia con el proveedor LLM activo.
+
+    Args:
+        body (ChatDocumentRequest): Identificador del documento y la pregunta.
+        current_user (dict): Usuario autenticado.
+
+    Returns:
+        dict: Respuesta generada por el modelo e identificador del documento.
     """
     try:
         from services.llm_service import get_llm_service
@@ -635,9 +687,18 @@ async def document_summary(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Devuelve el resumen de un documento.
-    Si ya está en caché (campo 'resumen' en Qdrant), lo devuelve directamente.
-    Si no, genera uno con el LLM activo y lo persiste para futuras llamadas.
+    Genera o recupera un resumen ejecutivo del documento.
+
+    Implementa una estrategia de "Cache-Aside":
+        1. Busca si ya existe un resumen almacenado en los metadatos de Qdrant.
+        2. Si no existe, utiliza el LLM para resumir los fragmentos principales.
+        3. Persiste el resumen generado para optimizar futuras consultas.
+
+    Args:
+        source (str): Identificador único o ruta del documento.
+
+    Returns:
+        dict: Texto del resumen y estado de caché.
     """
     try:
         from services.llm_service import get_llm_service
@@ -680,8 +741,15 @@ async def document_chat(
     current_user: dict = Depends(get_current_user),
 ):
     """
-    Chat con un documento específico.
-    source como query param, pregunta en el body JSON.
+    Chat contextual restringido a un solo archivo.
+    Similar a /chat-document pero orientado a la visualización por fuente.
+
+    Args:
+        body (DocumentChatRequest): Solo contiene la pregunta.
+        source (str): Identificador del documento (pasado como query param).
+
+    Returns:
+        dict: Respuesta del LLM.
     """
     try:
         from services.llm_service import get_llm_service
@@ -720,10 +788,18 @@ async def update_llm_settings(
     current_user: dict = Depends(require_admin),
 ):
     """
-    Actualiza el proveedor LLM en caliente sin reiniciar el servidor.
-    Solo accesible por administradores (rol admin).
-    Env vars actualizadas: LLM_PROVIDER, OPENAI_API_KEY / GEMINI_API_KEY /
-    ANTHROPIC_API_KEY, y la var de modelo correspondiente.
+    Actualiza la configuración del motor de IA (LLM) en tiempo de ejecución.
+
+    Permite a los administradores cambiar de proveedor (ej. de Local a OpenAI)
+    sin necesidad de reiniciar el contenedor o el proceso. Actualiza las
+    variables de entorno internas y reinicia el Singleton del servicio.
+
+    Args:
+        body (LLMSettingsRequest): Nuevo proveedor, clave de API y nombre del modelo.
+        current_user (dict): Validado con rol de administrador.
+
+    Returns:
+        dict: Confirmación de actualización del proveedor.
     """
 
     valid_providers = {"local", "openai", "gemini", "claude"}
@@ -763,8 +839,15 @@ async def update_llm_settings(
 @router.get("/system/pick-directory", tags=["Sistema"])
 async def pick_directory():
     """
-    En modo Docker no hay picker nativo del SO.
-    Devuelve la ruta por defecto y lista de directorios disponibles.
+    Simula un selector de directorios para la interfaz web.
+
+    Dado que la aplicación suele ejecutarse dentro de contenedores Docker, no
+    tenemos acceso a un selector nativo del sistema operativo del usuario.
+    Este endpoint devuelve rutas preconfiguradas y sugerencias basadas en 
+    el sistema de archivos del contenedor.
+
+    Returns:
+        dict: Ruta recomendada y lista de directorios con conteo de archivos.
     """
     datasets_path = "/app/datasets"
     if not os.path.isdir(datasets_path):
@@ -786,8 +869,16 @@ async def pick_directory():
 @router.get("/system/list-directory", tags=["Sistema"])
 async def list_directory(path: str = Query("/app", description="Ruta a listar")):
     """
-    Lista el contenido de un directorio dentro del contenedor.
-    Devuelve carpetas y archivos con metadatos básicos.
+    Explora y lista el contenido de un directorio dentro del contenedor.
+
+    Permite al usuario navegar por el sistema de archivos del servidor
+    para seleccionar qué carpetas desea indexar.
+
+    Args:
+        path (str): Ruta absoluta dentro del contenedor.
+
+    Returns:
+        dict: Listado estructurado de archivos (con tamaño) y carpetas (con conteo de documentos).
     """
     target = Path(path)
     if not target.is_dir():
@@ -832,8 +923,17 @@ class IndexDirectoryRequest(BaseModel):
 @router.post("/system/index-directory", tags=["Sistema"])
 async def index_directory(request: IndexDirectoryRequest, current_user: dict = Depends(require_admin)):
     """
-    Escanea un directorio y dispara tareas de Celery para cada archivo soportado.
-    Solo accesible para administradores (rol admin).
+    Escanea recursivamente un directorio e inicia la indexación masiva.
+
+    Para cada archivo compatible encontrado, dispara una tarea asíncrona en Celery.
+    Solo para administradores, ya que puede consumir recursos significativos.
+
+    Args:
+        request (IndexDirectoryRequest): Ruta del directorio a procesar.
+        current_user (dict): Validado con rol de administrador.
+
+    Returns:
+        dict: Cantidad de archivos encolados para su procesamiento.
     """
     dir_path = Path(request.path)
     if not dir_path.is_dir():
@@ -856,7 +956,13 @@ async def index_directory(request: IndexDirectoryRequest, current_user: dict = D
 @router.delete("/system/database", tags=["Sistema"])
 async def clear_database():
     """
-    Purga completa de la colección Qdrant. Elimina y recrea vacía.
+    Purga completa y recreación de la base de datos vectorial (Qdrant).
+
+    ¡ATENCIÓN!: Esta acción es irreversible. Elimina todos los puntos, 
+    metadatos y vectores indexados de la colección actual.
+
+    Returns:
+        dict: Confirmación del estado de la operación.
     """
     try:
         vdb = VectorDBService()
@@ -877,11 +983,158 @@ async def clear_database():
         raise HTTPException(status_code=500, detail=f"Error purgando la BD: {e}")
 
 
+@router.get("/filter-metadata", tags=["Filtros"])
+async def get_filter_metadata(current_user: dict = Depends(get_current_user)):
+    """
+    Recupera valores únicos de metadatos para poblar los filtros del frontend.
+
+    Realiza un escaneo (scroll) de la base de datos para extraer dinámicamente:
+        - Autores únicos.
+        - Software creador.
+        - Años y meses de creación disponibles.
+
+    Aplica filtros de privacidad para que los usuarios no administradores solo 
+    vean metadatos de documentos públicos.
+
+    Returns:
+        dict: Listas ordenadas de opciones para los desplegables de filtros.
+    """
+    try:
+        vdb = VectorDBService()
+        role = current_user.get("role", "normal")
+
+        from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+        # Construir filtro RBAC básico si no es admin
+        query_filter = None
+        if role != "admin":
+            query_filter = Filter(
+                must_not=[
+                    FieldCondition(
+                        key="visibility",
+                        match=MatchValue(value="admin_only")
+                    )
+                ]
+            )
+
+        # Obtener todos los puntos en la colección
+        authors = set()
+        creators = set()
+        years = set()
+        months = set()
+
+        # Usar scroll para iterar sobre TODOS los puntos
+        points_processed = 0
+        next_offset = None
+
+        while True:
+            try:
+                points, next_offset = vdb.client.scroll(
+                    collection_name=vdb.collection_name,
+                    limit=100,
+                    offset=next_offset,
+                    with_payload=True,
+                    query_filter=query_filter
+                )
+
+                if not points:
+                    break
+
+                for point in points:
+                    points_processed += 1
+                    if not hasattr(point, 'payload') or not point.payload:
+                        continue
+
+                    payload = point.payload
+
+                    # Extraer author
+                    if "author" in payload:
+                        author = payload.get("author")
+                        if author and isinstance(author, str) and author.strip():
+                            authors.add(author.strip())
+
+                    # Extraer creator
+                    if "creator" in payload:
+                        creator = payload.get("creator")
+                        if creator and isinstance(creator, str) and creator.strip():
+                            creators.add(creator.strip())
+
+                    # Extraer year
+                    if "exif_year" in payload:
+                        year = payload.get("exif_year")
+                        if year is not None:
+                            try:
+                                years.add(int(year))
+                            except (ValueError, TypeError):
+                                pass
+
+                    # Extraer month
+                    if "exif_month" in payload:
+                        month = payload.get("exif_month")
+                        if month is not None:
+                            try:
+                                months.add(int(month))
+                            except (ValueError, TypeError):
+                                pass
+
+                # Si no hay siguiente offset, terminamos
+                if next_offset is None:
+                    break
+
+            except Exception as e:
+                logger.warning(f"Error en scroll pagination: {e}")
+                break
+
+        logger.info(f"✅ filter-metadata: Procesados {points_processed} puntos, encontrados: {len(authors)} autores, {len(creators)} creadores, {len(years)} años, {len(months)} meses")
+
+        # Ordenar para presentación consistente
+        authors_list = sorted(list(authors), key=str.lower)
+        creators_list = sorted(list(creators), key=str.lower)
+        years_list = sorted(list(years))
+        months_list = sorted(list(months))
+
+        return {
+            "authors": authors_list,
+            "creators": creators_list,
+            "years": years_list,
+            "months": months_list,
+            "monthNames": {
+                1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+                5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+                9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"❌ Error obteniendo metadata de filtros: {e}", exc_info=True)
+        # Devolver respuesta vacía en lugar de Error 500
+        return {
+            "authors": [],
+            "creators": [],
+            "years": [],
+            "months": [],
+            "monthNames": {
+                1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
+                5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
+                9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre"
+            }
+        }
+
+
 def _find_highlights(text: str, query: str) -> list[dict]:
     """
-    Busca ocurrencias de cada palabra de la query en el texto para resaltado.
-    Divide la query en palabras, filtra stop words y palabras cortas.
-    Devuelve lista de {start, end} con las posiciones.
+    Identifica las coordenadas de los términos de búsqueda en un texto.
+
+    Diferencia entre palabras clave relevantes y palabras de parada (stop words) 
+    para resaltar solo lo que aporta valor visual al usuario. Fusiona rangos 
+    solapados para un renderizado limpio en el frontend.
+
+    Args:
+        text (str): El fragmento de texto a analizar.
+        query (str): La consulta original del usuario.
+
+    Returns:
+        list[dict]: Lista de objetos {start, end} con las posiciones de resaltado.
     """
     STOP_WORDS = {
         "el", "la", "los", "las", "un", "una", "unos", "unas",

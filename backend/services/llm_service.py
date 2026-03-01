@@ -1,17 +1,23 @@
 """
-services/llm_service.py — Servicio LLM centralizado (Factory Pattern).
+services/llm_service.py — Orquestación y Abstracción de Modelos de Lenguaje (LLM).
 
-Permite cambiar de proveedor simplemente con la variable de entorno:
-    LLM_PROVIDER=local    → HuggingFaceTB/SmolLM2-135M (CPU, sin coste)
-    LLM_PROVIDER=openai   → OpenAI (requiere OPENAI_API_KEY)
-    LLM_PROVIDER=gemini   → Google Gemini (requiere GEMINI_API_KEY)
-    LLM_PROVIDER=claude   → Anthropic Claude (requiere ANTHROPIC_API_KEY)
+Este módulo implementa el patrón Factory para permitir que MeigaSearch sea 
+independiente del proveedor de IA. Facilita la transición entre modelos locales 
+de bajo consumo y modelos de vanguardia en la nube mediante configuración simple.
 
-Uso:
-    from services.llm_service import get_llm_service
-    llm = get_llm_service()
-    summary = llm.summarize(text)
-    answer  = llm.chat("¿Cuál es el presupuesto?", context=full_text)
+Capacidades:
+    - Resúmenes Automáticos: Generación de síntesis ejecutivas de documentos.
+    - Chat RAG (Retrieval-Augmented Generation): Respuestas basadas en contexto 
+      con citación de fuentes.
+    - Streaming: Soporte para respuestas fluidas (token a token).
+    - Multi-proveedor: Soporte nativo para OpenAI, Google Gemini, Anthropic 
+      Claude y modelos locales (SmolLM).
+
+Configuración:
+    LLM_PROVIDER=local    ➔ Modelo SmolLM2 (CPU) para privacidad total y coste cero.
+    LLM_PROVIDER=openai   ➔ Potencia de GPT-4o-mini (requiere API Key).
+    LLM_PROVIDER=gemini   ➔ Ventana de contexto amplia con Gemini Flash.
+    LLM_PROVIDER=claude   ➔ Razonamiento superior con Claude Haiku.
 """
 
 import os
@@ -26,21 +32,21 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════
 
 class BaseLLMProvider(ABC):
-    """Interfaz común para todos los proveedores LLM."""
+    """Contrato base que deben implementar todos los proveedores de IA."""
 
     @abstractmethod
     def summarize(self, text: str) -> str:
-        """Genera un resumen conciso del texto dado."""
+        """Sintetiza el contenido de un documento en unos pocos párrafos clave."""
         ...
 
     @abstractmethod
     def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
-        """Responde una pregunta usando el contexto del documento y opcionalmente historial."""
+        """Genera una respuesta sopesando la pregunta contra el contexto corporativo."""
         ...
 
     @abstractmethod
     def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
-        """Versión en streaming de chat(). Retorna un generador de strings."""
+        """Versión asíncrona por generador para interfaces de chat fluido."""
         ...
 
 
@@ -50,9 +56,11 @@ class BaseLLMProvider(ABC):
 
 class LocalSmolLMProvider(BaseLLMProvider):
     """
-    Proveedor local usando SmolLM2-135M via transformers pipeline.
-    Carga el modelo en la primera llamada (lazy loading) y lo reutiliza.
-    Aplica cuantización dinámica int8 para reducir uso de RAM.
+    Motor local basado en SmolLM2-135M de Hugging Face.
+
+    Optimizado para ejecutarse en entornos corporativos con restricciones de 
+    datos o hardware limitado. Utiliza cuantización dinámica para reducir 
+    drásticamente el uso de memoria RAM sin sacrificar demasiada precisión.
     """
     _pipeline = None
 
@@ -138,9 +146,10 @@ class LocalSmolLMProvider(BaseLLMProvider):
 
 class OpenAIProvider(BaseLLMProvider):
     """
-    Proveedor OpenAI. Requiere:
-        OPENAI_API_KEY
-        OPENAI_LLM_MODEL (opcional, default: gpt-4o-mini)
+    Integración oficial con los modelos GPT de OpenAI.
+
+    Utiliza el SDK de OpenAI para ofrecer la mayor calidad de respuesta y 
+    velocidad de inferencia. Soporta streaming nativo.
     """
     def __init__(self):
         import openai
@@ -218,9 +227,10 @@ class OpenAIProvider(BaseLLMProvider):
 
 class GeminiProvider(BaseLLMProvider):
     """
-    Proveedor Google Gemini. Requiere:
-        GEMINI_API_KEY
-        GEMINI_LLM_MODEL (opcional, default: gemini-2.5-flash)
+    Integración con Google Gemini (Generative AI).
+
+    Especialmente útil por su gran ventana de contexto y velocidad en 
+    tareas de razonamiento intermedio. Requiere GEMINI_API_KEY.
     """
     def __init__(self):
         import google.generativeai as genai
@@ -275,9 +285,10 @@ class GeminiProvider(BaseLLMProvider):
 
 class ClaudeProvider(BaseLLMProvider):
     """
-    Proveedor Anthropic Claude. Requiere:
-        ANTHROPIC_API_KEY
-        CLAUDE_LLM_MODEL (opcional, default: claude-3-haiku-20240307)
+    Integración con Anthropic Claude.
+
+    Reconocido por su excelente seguimiento de instrucciones y capacidad 
+    de síntesis detallada. Requiere ANTHROPIC_API_KEY.
     """
     def __init__(self):
         import anthropic
@@ -349,8 +360,11 @@ class ClaudeProvider(BaseLLMProvider):
 
 class LLMFactory:
     """
-    Singleton factory. Lee LLM_PROVIDER del entorno y devuelve
-    la instancia adecuada. La instancia se crea una sola vez.
+    Fábrica responsable de la instanciación única (Singleton) de proveedores.
+
+    Esta clase garantiza que el modelo se cargue una sola vez en memoria y 
+    gestiona la lógica de selección basada en variables de entorno o 
+    configuración dinámica.
     """
     _instance: BaseLLMProvider | None = None
 
