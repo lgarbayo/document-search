@@ -139,4 +139,4 @@ pytest tests/
 MeigaSearch se distribuye bajo la licencia **Apache 2.0**. Ver [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt).
 
 ---
-Desarrollado durante la Hackathon 2026. Profesionalmente adaptado para entornos corporativos seguros.
+Desarrollado durante el HackUDC 2026. Profesionalmente adaptado para entornos corporativos seguros.
