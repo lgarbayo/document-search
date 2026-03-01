@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Request, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from api.auth import get_current_user, require_admin, require_admin_or_editor, USERS, create_token, pwd_context
@@ -556,6 +556,100 @@ async def get_document_detail(source: str = Query(..., description="Ruta del arc
         raise
     except Exception as e:
         logger.error(f"❌ Error obteniendo documento: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ═══════════════════════════════════════════════════════════════
+#  POST /api/global-chat — RAG Chat sobre TODOS los documentos
+# ═══════════════════════════════════════════════════════════════
+
+class GlobalChatRequest(BaseModel):
+    pregunta: str
+    history: list[dict] = []
+
+
+@router.post("/global-chat", tags=["Chat"])
+async def global_rag_chat(
+    body: GlobalChatRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Chat RAG global con Streaming (SSE), Memoria y Citas Precisas.
+    """
+    try:
+        from services.llm_service import get_llm_service
+        import json
+
+        role = current_user.get("role", "normal")
+        vdb = VectorDBService()
+
+        # 1. Retrieval
+        raw_results = await vdb.hybrid_search(
+            query=body.pregunta,
+            query_text=body.pregunta,
+            top_k=5,
+            role=role,
+        )
+
+        async def generate_error(msg):
+            yield f"data: {json.dumps({'error': msg})}\n\n"
+
+        if not raw_results:
+            async def generate_empty():
+                yield f"data: {json.dumps({'sources': {}})}\n\n"
+                yield f"data: {json.dumps({'chunk': 'No encontré información relevante en la base de datos para responder a tu pregunta.'})}\n\n"
+            return StreamingResponse(generate_empty(), media_type="text/event-stream")
+
+        # 2. Augmentation con IDs de Citas
+        context_parts = []
+        sources_map = {}
+        # Usamos un dict para mapear filename -> ID para no repetir IDs para el mismo documento
+        doc_to_id = {}
+        next_id = 1
+
+        for r in raw_results:
+            filename = r.get("source", "unknown")
+            source_name = Path(filename).stem.replace("_", " ").title()
+            
+            if filename not in doc_to_id:
+                doc_to_id[filename] = next_id
+                sources_map[str(next_id)] = source_name
+                next_id += 1
+                
+            doc_id = doc_to_id[filename]
+            text = r.get("text", "")
+            context_parts.append(f"[{doc_id}] [Fuente: {source_name}]\n{text}")
+
+        context = "\n\n---\n\n".join(context_parts)[:6000]
+
+        # 3. Generation (Stream)
+        llm = get_llm_service()
+        system_prompt = (
+            "Eres un asistente corporativo. Responde la pregunta basándote ÚNICAMENTE "
+            "en la información proporcionada. Usa identificadores como [1], [2] explícitamente "
+            "en tu texto para citar las fuentes cuando afirmes datos. Si la información "
+            "no es suficiente, dilo claramente."
+        )
+        full_context = f"{system_prompt}\n\n--- INFORMACIÓN CORPORATIVA ---\n\n{context}"
+
+        async def event_generator():
+            # Emitir primero el mapa de fuentes (citations)
+            yield f"data: {json.dumps({'sources': sources_map})}\n\n"
+            
+            # Emitir el stream de texto palabra a palabra / token a token
+            try:
+                # chat_stream maneja el historial internamente enviándolo al proveedor
+                stream = llm.chat_stream(body.pregunta, full_context, body.history)
+                for chunk in stream:
+                    yield f"data: {json.dumps({'chunk': chunk})}\n\n"
+            except Exception as e:
+                logger.error(f"Error en stream LLM: {e}")
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+        return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+    except Exception as e:
+        logger.error(f"❌ Error en global-chat: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

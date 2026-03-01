@@ -34,8 +34,13 @@ class BaseLLMProvider(ABC):
         ...
 
     @abstractmethod
-    def chat(self, prompt: str, context: str) -> str:
-        """Responde una pregunta usando el contexto del documento."""
+    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        """Responde una pregunta usando el contexto del documento y opcionalmente historial."""
+        ...
+
+    @abstractmethod
+    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
+        """Versión en streaming de chat(). Retorna un generador de strings."""
         ...
 
     @abstractmethod
@@ -100,13 +105,34 @@ class LocalSmolLMProvider(BaseLLMProvider):
         )
         return self._generate(prompt, max_new_tokens=200)
 
-    def chat(self, prompt: str, context: str) -> str:
+    def _format_history_smollm(self, context: str, prompt: str, history: list[dict] = None) -> str:
+        historico = ""
+        if history:
+            for msg in history[-4:]: # Solo los 4 últimos para no saturar contexto
+                role = "Humano" if msg.get("role") == "user" else "Asistente"
+                historico += f"{role}: {msg.get('content')}\n\n"
+        
         full_prompt = (
             f"Contexto del documento:\n{context[:3000]}\n\n"
-            f"Pregunta: {prompt}\n\n"
-            f"Respuesta:"
         )
+        if historico:
+            full_prompt += f"Historial de conversación:\n{historico}"
+        
+        full_prompt += f"Pregunta: {prompt}\n\nRespuesta:"
+        return full_prompt
+
+    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        full_prompt = self._format_history_smollm(context, prompt, history)
         return self._generate(full_prompt, max_new_tokens=250)
+
+    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
+        # SmolLM/Transformers pipeline no tiene un streamer súper limpio out-of-the-box sin TextStreamer
+        # Para simplificar y no bloquear, hacemos un fake stream (devolvemos todo de golpe)
+        # En un entorno real se usaría TextIteratorStreamer de transformers
+        ans = self.chat(prompt, context, history)
+        # Dividimos en palabras para fingir el stream
+        for word in ans.split(" "):
+            yield word + " "
 
     def expand_keywords(self, query: str) -> str:
         import re
@@ -167,15 +193,45 @@ class OpenAIProvider(BaseLLMProvider):
             user=f"Resume este texto en 3-5 frases:\n\n{text}",
         )
 
-    def chat(self, prompt: str, context: str) -> str:
-        return self._complete(
-            system=(
-                "Eres un asistente corporativo. Responde la pregunta basándote EXCLUSIVAMENTE "
-                "en el contexto del documento proporcionado. "
-                "Si la respuesta no está en el documento, indícalo claramente."
-            ),
-            user=f"Contexto del documento:\n{context}\n\nPregunta: {prompt}",
+    def _build_messages_openai(self, prompt: str, context: str, history: list[dict] = None) -> list[dict]:
+        system = (
+            "Eres un asistente corporativo. Responde basándote EXCLUSIVAMENTE "
+            "en el contexto proporcionado. Usa [1], [2], etc. para citar las fuentes "
+            "si se te proporcionan identificadores. Si no está en el documento, indícalo."
         )
+        msgs = [{"role": "system", "content": f"{system}\n\nContexto:\n{context}"}]
+        
+        if history:
+            for h in history[-6:]: # max 6 mensajes de historial
+                role = "assistant" if h.get("role") == "assistant" else "user"
+                msgs.append({"role": role, "content": h.get("content", "")})
+        
+        msgs.append({"role": "user", "content": prompt})
+        return msgs
+
+    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        msgs = self._build_messages_openai(prompt, context, history)
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=msgs,
+            max_tokens=512,
+            temperature=0.3,
+        )
+        return resp.choices[0].message.content.strip()
+
+    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
+        msgs = self._build_messages_openai(prompt, context, history)
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=msgs,
+            max_tokens=512,
+            temperature=0.3,
+            stream=True,
+        )
+        for chunk in resp:
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content
 
     def expand_keywords(self, query: str) -> str:
         return self._complete(
@@ -211,14 +267,35 @@ class GeminiProvider(BaseLLMProvider):
         )
         return self.model.generate_content(prompt).text.strip()
 
-    def chat(self, prompt: str, context: str) -> str:
+    def _build_content_gemini(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        historico = ""
+        if history:
+            for msg in history[-6:]:
+                role = "Usuario" if msg.get("role") == "user" else "Asistente"
+                historico += f"{role}: {msg.get('content')}\n\n"
+        
         full_prompt = (
-            f"Contexto del documento:\n{context}\n\n"
-            f"Pregunta: {prompt}\n\n"
-            f"Responde basándote SOLO en el contexto. "
-            f"Si la información no está en el documento, indícalo claramente."
+            f"Eres un asistente corporativo. Responde basándote SOLO en el contexto. "
+            f"Si la información no está en el documento, indícalo claramente.\n"
+            f"Usa notación [1], [2] para citar las fuentes numeradas.\n\n"
+            f"Contexto:\n{context}\n\n"
         )
+        if historico:
+            full_prompt += f"Historial:\n{historico}"
+            
+        full_prompt += f"Pregunta: {prompt}"
+        return full_prompt
+
+    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        full_prompt = self._build_content_gemini(prompt, context, history)
         return self.model.generate_content(full_prompt).text.strip()
+
+    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
+        full_prompt = self._build_content_gemini(prompt, context, history)
+        response = self.model.generate_content(full_prompt, stream=True)
+        for chunk in response:
+            if chunk.text:
+                yield chunk.text
 
     def expand_keywords(self, query: str) -> str:
         prompt = (
@@ -261,15 +338,42 @@ class ClaudeProvider(BaseLLMProvider):
             user=f"Resume este texto en 3-5 frases:\n\n{text}",
         )
 
-    def chat(self, prompt: str, context: str) -> str:
-        return self._complete(
-            system=(
-                "Eres un asistente corporativo. Responde basándote EXCLUSIVAMENTE "
-                "en el contexto del documento. "
-                "Si la respuesta no está en el documento, indícalo claramente."
-            ),
-            user=f"Contexto del documento:\n{context}\n\nPregunta: {prompt}",
+    def _build_messages_claude(self, prompt: str, context: str, history: list[dict] = None):
+        system = (
+            "Eres un asistente corporativo. Responde basándote EXCLUSIVAMENTE "
+            "en el contexto. Usa identificadores [1], [2] para citar fuentes. "
+            "Si la respuesta no está en el documento, indícalo claramente.\n\n"
+            f"Contexto:\n{context}"
         )
+        msgs = []
+        if history:
+            for h in history[-6:]:
+                role = "assistant" if h.get("role") == "assistant" else "user"
+                msgs.append({"role": role, "content": h.get("content", "")})
+        
+        msgs.append({"role": "user", "content": prompt})
+        return system, msgs
+
+    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
+        system, msgs = self._build_messages_claude(prompt, context, history)
+        resp = self.client.messages.create(
+            model=self.model,
+            max_tokens=512,
+            system=system,
+            messages=msgs,
+        )
+        return resp.content[0].text.strip()
+
+    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
+        system, msgs = self._build_messages_claude(prompt, context, history)
+        with self.client.messages.stream(
+            model=self.model,
+            max_tokens=512,
+            system=system,
+            messages=msgs,
+        ) as stream:
+            for text in stream.text_stream:
+                yield text
 
     def expand_keywords(self, query: str) -> str:
         return self._complete(
