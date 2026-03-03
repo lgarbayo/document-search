@@ -1384,7 +1384,95 @@
       margin: 0;
     }
 
+    /* ── Panel de Chat del Documento ──────────── */
+    .dd-chat-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 6px;
+      background: #fca311;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #14213d;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
+    .dd-chat-toggle:hover {
+      opacity: 0.85;
+    }
+
+    .dd-chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .dd-chat-bubble {
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      line-height: 1.55;
+      max-width: 88%;
+      word-break: break-word;
+    }
+
+    .dd-chat-bubble--user {
+      background: #fca311;
+      color: #14213d;
+      align-self: flex-end;
+    }
+
+    .dd-chat-bubble--ai {
+      background: #fff;
+      border: 1px solid rgba(20, 33, 61, .1);
+      color: #14213d;
+      align-self: flex-start;
+    }
+
+    .dd-chat-bubble--loading {
+      color: rgba(20, 33, 61, .4);
+      font-style: italic;
+      align-self: flex-start;
+    }
+
+    .dd-chat-input {
+      flex: 1;
+      padding: .6rem .9rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .875rem;
+      outline: none;
+      color: #14213d;
+      background: #fff;
+    }
+
+    .dd-chat-input:focus {
+      border-color: #fca311;
+    }
+
+    .dd-chat-send {
+      padding: .6rem 1.1rem;
+      background: #fca311;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: .875rem;
+      color: #14213d;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .dd-chat-send:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
 
     /* ── Modal de Ajustes ────────────────────────────────────────── */
     dialog.settings-dialog {
@@ -1896,6 +1984,13 @@
               </svg>
               Resumen
             </button>
+            <button class="dd-chat-toggle" id="ddChatToggle" onclick="toggleDocChat()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                <path
+                  d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894" />
+              </svg>
+              Preguntar
+            </button>
           </div>
         </div>
         <!-- Summary panel -->
@@ -1907,6 +2002,19 @@
             <div class="dd-summary-loading">
               <div class="spinner" style="width:16px;height:16px;"></div> Generando resumen…
             </div>
+          </div>
+        </div>
+        <!-- Chat con el documento -->
+        <div id="ddChat"
+          style="display:none;border-top:1px solid rgba(20,33,61,.08);padding:16px 24px 20px;background:#f9fafb;flex-direction:column;gap:10px;">
+          <p
+            style="margin:0;font-size:.75rem;font-weight:700;color:rgba(20,33,61,.45);text-transform:uppercase;letter-spacing:.5px;">
+            &#x1F4AC; Pregunta al documento</p>
+          <div class="dd-chat-messages" id="ddChatMessages"></div>
+          <div style="display:flex;gap:8px;">
+            <input id="ddChatInput" class="dd-chat-input" type="text"
+              placeholder="Escribe tu pregunta sobre este documento…" />
+            <button id="ddChatSend" class="dd-chat-send" onclick="sendChatMessage()">Enviar</button>
           </div>
         </div>
 
@@ -2571,7 +2679,10 @@
        */
       async function openDocDetail(source) {
         currentDocSource = source;
-        // Reset summary state on each new document
+        // Reset chat + summary state on each new document
+        $('ddChatMessages').innerHTML = '';
+        $('ddChat').style.display = 'none';
+        $('ddChatInput').value = '';
         $('ddSummaryPanel').style.display = 'none';
         $('ddSummaryContent').innerHTML = '<div class="dd-summary-loading"><div class="spinner" style="width:16px;height:16px;"></div> Generando resumen…</div>';
         $('ddModal').style.display = 'flex';
@@ -2630,8 +2741,17 @@
 
       function closeDocDetail() {
         $('ddModal').style.display = 'none';
+        $('ddChat').style.display = 'none';
+        $('ddChatMessages').innerHTML = '';
         $('ddSummaryPanel').style.display = 'none';
         currentDocSource = null;
+      }
+
+      function toggleDocChat() {
+        const panel = $('ddChat');
+        const isOpen = panel.style.display === 'flex';
+        panel.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) $('ddChatInput').focus();
       }
 
       function toggleDocSummary() {
@@ -2663,7 +2783,62 @@
         }
       }
 
+      /**
+       * ¿CÓMO FUNCIONA EL CHAT DEL DOCUMENTO? (RAG Localizado)
+       * 1. El usuario hace una pregunta sobre el PDF que está viendo.
+       * 2. Enviamos la pregunta + el ID del documento al backend.
+       * 3. El backend busca los fragmentos más relevantes de ESTE archivo.
+       * 4. La IA responde usando solo esa información "privada".
+       */
+      async function sendChatMessage() {
+        const input = $('ddChatInput');
+        const pregunta = input.value.trim();
+        if (!pregunta || !currentDocSource) return;
 
+        const send = $('ddChatSend');
+        send.disabled = true;
+        input.value = '';
+
+        // Burbuja del usuario
+        const msgs = $('ddChatMessages');
+        const userBubble = document.createElement('div');
+        userBubble.className = 'dd-chat-bubble dd-chat-bubble--user';
+        userBubble.textContent = pregunta;
+        msgs.appendChild(userBubble);
+
+        // Burbuja de espera
+        const loadingBubble = document.createElement('div');
+        loadingBubble.className = 'dd-chat-bubble dd-chat-bubble--loading';
+        loadingBubble.textContent = 'El modelo está pensando…';
+        msgs.appendChild(loadingBubble);
+        msgs.scrollTop = msgs.scrollHeight;
+
+        try {
+          const r = await fetch('/api/chat-document', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${getToken()}`
+            },
+            body: JSON.stringify({ doc_id: currentDocSource, pregunta })
+          });
+          if (r.status === 401) { showLoginModal(); return; }
+          if (!r.ok) throw new Error(`Error ${r.status}`);
+          const data = await r.json();
+
+          loadingBubble.className = 'dd-chat-bubble dd-chat-bubble--ai';
+          loadingBubble.textContent = data.answer || '(sin respuesta)';
+        } catch (e) {
+          loadingBubble.className = 'dd-chat-bubble dd-chat-bubble--ai';
+          loadingBubble.textContent = `⚠️ ${esc(e.message)}`;
+        } finally {
+          send.disabled = false;
+          msgs.scrollTop = msgs.scrollHeight;
+          input.focus();
+        }
+      }
+
+      $('ddChatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChatMessage(); });
 
       /* ── Subida mediante Arrastrar y Soltar (Drag and Drop) ───────── */
       let dragCounter = 0;
