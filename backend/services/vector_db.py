@@ -16,6 +16,7 @@ de buscar palabras exactas, buscamos por significado.
 
 import uuid
 import asyncio
+from pathlib import Path
 from abc import ABC, abstractmethod
 
 from qdrant_client import QdrantClient
@@ -657,6 +658,43 @@ class VectorDBService:
         # Ordenar por chunk_index para reconstruir el documento en orden
         formatted.sort(key=lambda x: x.get("chunk_index", 0) or 0)
         return formatted
+
+    async def get_all_documents(self) -> list[dict]:
+        """
+        Recupera una lista única (distinct) de todos los documentos indexados en la base de datos.
+        """
+        await asyncio.to_thread(self.ensure_collection)
+        results = []
+        offset = None
+        seen_sources = set()
+
+        while True:
+            scroll_res, next_offset = await asyncio.to_thread(
+                self.client.scroll,
+                collection_name=self.collection_name,
+                limit=1000,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            
+            for point in scroll_res:
+                source = point.payload.get("source")
+                if source and source not in seen_sources:
+                    seen_sources.add(source)
+                    title = Path(source).stem.replace("_", " ").title() if source else "Desconocido"
+                    results.append({
+                        "source": source,
+                        "title": title,
+                        "extension": point.payload.get("extension", ""),
+                        "category": point.payload.get("category", "General"),
+                    })
+                    
+            offset = next_offset
+            if offset is None:
+                break
+                
+        return sorted(results, key=lambda x: x["title"].lower())
 
     async def update_document_summary(self, source: str, summary: str) -> None:
         """

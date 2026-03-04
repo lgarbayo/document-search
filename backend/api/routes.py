@@ -452,8 +452,16 @@ async def view_document(source: str = Query(..., description="Ruta del archivo f
         
     return FileResponse(path=file_path)
 
+@router.get("/documents", tags=["Documentos"])
+async def get_all_documents(request: Request) -> list[dict]:
+    """
+    Recupera una lista de todos los documentos indexados en la base de datos vectorial.
+    """
+    vdb = VectorDBService()
+    return await vdb.get_all_documents()
+
 @router.get("/document", tags=["Documentos"])
-async def get_document_detail(source: str = Query(..., description="Ruta del archivo fuente")):
+async def get_document_detail(request: Request, source: str = Query(..., description="Ruta del archivo fuente")):
     """
     Recupera todos los chunks de un documento y los reconstruye con metadatos.
     """

@@ -103,9 +103,9 @@
     }
 
     .app-header__inner {
-      max-width: 860px;
+      max-width: 100%;
       margin: 0 auto;
-      padding: 12px 16px;
+      padding: 12px 32px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -136,9 +136,32 @@
 
     .app-container {
       width: 100%;
-      max-width: 860px;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 18px 16px 48px;
+      padding: 18px 32px 48px;
+    }
+
+    .home-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-top: 10px;
+    }
+
+    .dashboard-col {
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    @media (max-width: 768px) {
+      .home-dashboard {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* Fullscreen backdrops */
@@ -382,14 +405,15 @@
     .search-bar-wrapper {
       display: flex;
       align-items: center;
-      width: 100%;
+      width: 60%;
+      margin: 0 auto;
       background: rgba(255, 255, 255, .25);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1.5px solid rgba(255, 255, 255, .45);
       border-radius: 20px 4px 20px 4px;
       /* Estilo de esquinas asimétricas característico */
-      padding: 0 12px 0 22px;
+      padding: 0 12px 0 12px;
       box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
       transition: box-shadow .2s ease, border-color .2s;
     }
@@ -2126,7 +2150,7 @@
           </div>
         </div>
 
-        <div class="search-bar-wrapper w-full">
+        <div class="search-bar-wrapper">
           <input id="searchInput" type="text" placeholder="¿Qué documento o funcionalidad necesitas?"
             autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search documents" />
           <div class="flex items-center gap-2 pl-2 flex-shrink-0">
@@ -2239,13 +2263,27 @@
 
     <div class="app-container">
 
-      <!-- Recent searches (shown in pre-search state only) -->
-      <div id="recentSection" class="w-full" style="display:none; margin-top: 10px;">
-        <div class="flex items-center justify-between mb-2" style="padding:0 2px">
-          <span class="recent-label">Búsquedas recientes</span>
-	          <button class="clear-all-btn" data-action="clear-history" type="button">Borrar todo</button>
+      <!-- Home Dashboard: Two columns (Indexed Docs & Recent Searches) -->
+      <div id="homeDashboard" class="home-dashboard" style="display:none">
+        
+        <!-- Left Column: Indexed Documents -->
+        <div id="indexSection" class="dashboard-col">
+          <div class="flex items-center justify-between mb-2" style="padding:0 2px">
+            <span class="recent-label">Documentos Indexados</span>
+            <span id="indexCount" class="text-sm" style="color:var(--accent); font-weight:600"></span>
+          </div>
+          <ul id="indexList" class="m-0 p-0 flex flex-col gap-1"></ul>
         </div>
-        <ul id="recentList" class="m-0 p-0 flex flex-col gap-1"></ul>
+        
+        <!-- Right Column: Recent searches -->
+        <div id="recentSection" class="dashboard-col">
+          <div class="flex items-center justify-between mb-2" style="padding:0 2px">
+            <span class="recent-label">Búsquedas recientes</span>
+            <button class="clear-all-btn" data-action="clear-history" type="button">Borrar todo</button>
+          </div>
+          <ul id="recentList" class="m-0 p-0 flex flex-col gap-1"></ul>
+        </div>
+
       </div>
 
       <!-- Results section -->
@@ -2579,6 +2617,9 @@
 
         // Guardar rol para guards de drag-drop
         window._userRole = role;
+        
+        // Revelar el Dashboard de la página de inicio
+        setHasSearched(false);
       }
       $('loginBtn').addEventListener('click', async () => {
         const u = $('loginUser').value.trim(), p = $('loginPass').value;
@@ -2636,7 +2677,39 @@
       /* ── Interfaz y Diseño ────────────────────────────────────────────── */
       function setHasSearched(v) {
         state.hasSearched = v;
-        $('recentSection').style.display = (!v && state.history.length > 0) ? 'block' : 'none';
+        $('homeDashboard').style.display = !v ? 'grid' : 'none';
+        
+        // If returning home, load the left column list
+        if (!v) loadIndexedDocuments();
+      }
+
+      async function loadIndexedDocuments() {
+        const list = $('indexList');
+        const count = $('indexCount');
+        if (!list) return;
+        try {
+          list.innerHTML = `<li class="recent-item" style="color:rgba(0,0,0,0.5); justify-content:center; padding: 20px;">Cargando catálogo...</li>`;
+          const apiKey = localStorage.getItem('meiga_api_key') || '';
+          const res = await fetch('/api/documents', { headers: { 'X-API-Key': apiKey } });
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            count.textContent = data.length > 0 ? data.length : '';
+            if (data.length === 0) {
+              list.innerHTML = `<li class="recent-item" style="color:rgba(0,0,0,0.4); justify-content:center; padding: 20px;">No hay documentos indexados</li>`;
+              return;
+            }
+            list.innerHTML = data.map(doc => `
+              <li class="recent-item" data-source="${esc(doc.source).replace(/"/g, '&quot;')}" style="cursor:pointer" onclick="openDocDetail(this.dataset.source)">
+                <svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5v2a1 1 0 0 0 1 1h2L9.5 1.5z"/></svg>
+                <div style="display:flex; flex-direction:column; flex:1; min-width:0;">
+                  <span class="item-text" title="${esc(doc.source)}">${esc(doc.title)}</span>
+                </div>
+                <span class="item-text" style="opacity:0.6; font-size:0.75rem; text-transform:uppercase;">${esc(doc.extension.replace('.',''))}</span>
+              </li>`).join('');
+          }
+        } catch (e) {
+          list.innerHTML = `<li class="recent-item" style="color:var(--accent); justify-content:center">Error de red</li>`;
+        }
       }
       function showResultsState(s) {
         $('resultsSection').style.display = s === 'hidden' ? 'none' : 'block';
@@ -3117,6 +3190,10 @@
       function clearAllHistory() { state.history = []; saveHistory(); renderHistory() }
       function renderHistory() {
         const list = $('recentList'); if (!list) return;
+        if (state.history.length === 0) {
+          list.innerHTML = `<li class="recent-item" style="color:rgba(0,0,0,0.4); justify-content:center; padding: 20px;">No hay búsquedas recientes</li>`;
+          return;
+        }
         list.innerHTML = state.history.map((item, idx) => `
     <li class="recent-item" data-query="${esc(item).replace(/"/g, '&quot;')}">
       <svg class="item-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
@@ -3132,7 +3209,6 @@
           const li = e.target.closest('[data-query]');
           if (li) selectHistory(li.dataset.query);
         };
-        $('recentSection').style.display = (!state.hasSearched && state.history.length > 0) ? 'block' : 'none';
       }
       function selectHistory(q) { $('searchInput').value = q; onSearchSubmit() }
 
