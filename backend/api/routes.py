@@ -23,11 +23,10 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from api.auth import (USERS, create_token, get_current_user, pwd_context,
-                      require_admin, require_admin_or_editor)
+
 from celery.result import AsyncResult
 from core.config import settings
-from fastapi import (APIRouter, Depends, File, HTTPException, Query, Request,
+from fastapi import (APIRouter, File, HTTPException, Query, Request,
                      UploadFile)
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
@@ -41,25 +40,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-# ═══════════════════════════════════════════════════════════════
-#  POST /api/login — Autenticación JWT
-# ═══════════════════════════════════════════════════════════════
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-@router.post("/login", tags=["Auth"])
-async def login(body: LoginRequest):
-    """
-    Autentica un usuario y devuelve un JWT.
-    Usuarios disponibles (demo): admin / empleado
-    """
-    user = USERS.get(body.username)
-    if not user or not pwd_context.verify(body.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
-    token = create_token(body.username, user["role"])
-    return {"access_token": token, "token_type": "bearer", "role": user["role"]}
 
 
 # ── Endpoints de Ingesta de Documentos ───────────────────────────
@@ -67,7 +48,6 @@ async def login(body: LoginRequest):
 @router.post("/upload", tags=["Ingesta"])
 async def upload_document(
     file: UploadFile = File(...),
-    current_user: dict = Depends(require_admin_or_editor),
 ):
     """
     Sube un documento para su procesamiento asíncrono en segundo plano.
@@ -79,7 +59,6 @@ async def upload_document(
 
     Args:
         file (UploadFile): El documento binario enviado por el cliente.
-        current_user (dict): Payload del usuario validado (admin o editor).
 
     Returns:
         JSONResponse: Estado 202 Accepted con el ID de la tarea de Celery.
@@ -105,10 +84,7 @@ async def upload_document(
         content = await file.read()
         with open(file_path, "wb") as f:
             f.write(content)
-        logger.info(
-            f"📁 Archivo guardado: {file_path} ({len(content)} bytes) "
-            f"por usuario={current_user.get('sub')}"
-        )
+        logger.info(f"📁 Archivo guardado: {file_path} ({len(content)} bytes)")
     except Exception as e:
         logger.error(f"Error de persistencia: {e}")
         raise HTTPException(
@@ -193,7 +169,6 @@ async def search_documents(
     month: int = Query(None, ge=1, le=12, description="Filtrar por mes de creación"),
     min_year: int = Query(None, ge=1900, description="Año mínimo de creación/modificación"),
     max_year: int = Query(None, ge=1900, description="Año máximo de creación/modificación"),
-    current_user: dict = Depends(get_current_user),
 ):
     """
     ¿CÓMO BUSCAMOS LA INFORMACIÓN? (El Motor de Búsqueda).
@@ -209,7 +184,6 @@ async def search_documents(
     """
     try:
         start_time = time.time()
-        role = current_user.get("role", "normal")
 
         filters = {}
         if type:
@@ -304,11 +278,8 @@ async def search_documents(
                 filters=filters if filters else None,
                 range_filters=range_filters if range_filters else None,
                 exact_filters=exact_filters if exact_filters else None,
-                role=role,
             )
             # Saltar directamente a agrupación (sin expansion ni hybrid)
-            extracted_keywords = None
-            use_expansion = False
         else:
             # 🔍 MODO SEMÁNTICO
             # Búsqueda inicial HÍBRIDA: semántica + léxica en paralelo
@@ -319,7 +290,6 @@ async def search_documents(
                 filters=filters if filters else None,
                 range_filters=range_filters if range_filters else None,
                 exact_filters=exact_filters if exact_filters else None,
-                role=role,
             )
 
         # ── Agrupar resultados por documento (source) ──
@@ -529,7 +499,6 @@ class GlobalChatRequest(BaseModel):
 @router.post("/global-chat", tags=["Chat"])
 async def global_rag_chat(
     body: GlobalChatRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Chat RAG global con Streaming (SSE), memoria de conversación y citación de fuentes.
@@ -554,7 +523,6 @@ async def global_rag_chat(
 
         from services.llm_service import get_llm_service
 
-        role = current_user.get("role", "normal")
         vdb = VectorDBService()
 
         # 1. Retrieval
@@ -562,7 +530,6 @@ async def global_rag_chat(
             query=body.pregunta,
             query_text=body.pregunta,
             top_k=5,
-            role=role,
         )
 
         async def generate_error(msg):
@@ -639,7 +606,6 @@ class ChatDocumentRequest(BaseModel):
 @router.post("/chat-document", tags=["Chat"])
 async def chat_document(
     body: ChatDocumentRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Inicia una conversación enfocada en un único documento específico.
@@ -691,7 +657,6 @@ async def chat_document(
 @router.post("/documents/summary", tags=["Documentos"])
 async def document_summary(
     source: str = Query(...),
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Genera o recupera un resumen ejecutivo del documento.
@@ -745,7 +710,6 @@ class DocumentChatRequest(BaseModel):
 async def document_chat(
     body: DocumentChatRequest,
     source: str = Query(...),
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Chat contextual restringido a un solo archivo.
@@ -792,7 +756,6 @@ class LLMSettingsRequest(BaseModel):
 @router.post("/system/settings", tags=["Sistema"])
 async def update_llm_settings(
     body: LLMSettingsRequest,
-    current_user: dict = Depends(require_admin),
 ):
     """
     Actualiza la configuración del motor de IA (LLM) en tiempo de ejecución.
@@ -835,7 +798,7 @@ async def update_llm_settings(
     from services.llm_service import LLMFactory
     LLMFactory.reset()
 
-    logger.info(f"⚙️  LLM settings updated → provider={body.provider} by user={current_user.get('sub')}")
+    logger.info(f"⚙️  LLM settings updated → provider={body.provider}")
     return {"ok": True, "provider": body.provider}
 
 
@@ -928,7 +891,7 @@ class IndexDirectoryRequest(BaseModel):
 
 
 @router.post("/system/index-directory", tags=["Sistema"])
-async def index_directory(request: IndexDirectoryRequest, current_user: dict = Depends(require_admin)):
+async def index_directory(request: IndexDirectoryRequest):
     """
     Escanea recursivamente un directorio e inicia la indexación masiva.
 
@@ -991,7 +954,7 @@ async def clear_database():
 
 
 @router.get("/filter-metadata", tags=["Filtros"])
-async def get_filter_metadata(current_user: dict = Depends(get_current_user)):
+async def get_filter_metadata():
     """
     Recupera valores únicos de metadatos para poblar los filtros del frontend.
 
@@ -1008,21 +971,10 @@ async def get_filter_metadata(current_user: dict = Depends(get_current_user)):
     """
     try:
         vdb = VectorDBService()
-        role = current_user.get("role", "normal")
 
         from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-        # Construir filtro RBAC básico si no es admin
         query_filter = None
-        if role != "admin":
-            query_filter = Filter(
-                must_not=[
-                    FieldCondition(
-                        key="visibility",
-                        match=MatchValue(value="admin_only")
-                    )
-                ]
-            )
 
         # Obtener todos los puntos en la colección
         authors = set()

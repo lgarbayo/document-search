@@ -238,14 +238,12 @@ class VectorDBService:
         filters: dict = None,
         range_filters: dict = None,
         exact_filters: dict = None,
-        role: str = "normal",
     ) -> list[dict]:
         """
         Ejecuta una búsqueda puramente semántica (vectorial) con filtros dinámicos.
 
         Utiliza la similitud del coseno para encontrar los fragmentos que más se 
-        aproximan al significado de la consulta. Implementa seguridad a nivel de 
-        registro (RBAC) ocultando automáticamente documentos 'admin_only'.
+        aproximan al significado de la consulta.
 
         Args:
             query (str): Pregunta o términos del usuario.
@@ -253,7 +251,6 @@ class VectorDBService:
             filters (dict): Filtros de categoría o extensión (operadores OR internos).
             range_filters (dict): Filtros numéricos para fechas o tamaños.
             exact_filters (dict): Coincidencias exactas (ej. autores).
-            role (str): Rol del usuario para control de visibilidad.
 
         Returns:
             list[dict]: Lista de resultados formateados con texto y score de relevancia.
@@ -308,22 +305,6 @@ class VectorDBService:
         if must_conditions:
              query_filter = Filter(must=must_conditions)
 
-        # ── Payload filtering por visibilidad (RBAC) ──────────────
-        # Los documentos marcados como visibility="admin_only" solo los
-        # puede ver el rol admin. Cualquier otro rol los excluye vía must_not.
-        if role != "admin":
-            visibility_condition = FieldCondition(
-                key="visibility", match=MatchValue(value="admin_only")
-            )
-            if query_filter:
-                existing_must_not = list(query_filter.must_not or [])
-                query_filter = Filter(
-                    must=query_filter.must,
-                    should=query_filter.should,
-                    must_not=existing_must_not + [visibility_condition],
-                )
-            else:
-                query_filter = Filter(must_not=[visibility_condition])
         results = await asyncio.to_thread(
             self.client.query_points,
             collection_name=self.collection_name,
@@ -356,7 +337,6 @@ class VectorDBService:
         filters: dict = None,
         range_filters: dict = None,
         exact_filters: dict = None,
-        role: str = "normal",
     ) -> list[dict]:
         """
         Realiza una búsqueda léxica literal (estilo Grep / Ctrl+F).
@@ -402,16 +382,8 @@ class VectorDBService:
                 if range_args:
                     must_conditions.append(FieldCondition(key=key, range=Range(**range_args)))
 
-        # RBAC: excluir docs admin_only para roles no-admin
-        must_not_conditions = []
-        if role != "admin":
-            must_not_conditions.append(
-                FieldCondition(key="visibility", match=MatchValue(value="admin_only"))
-            )
-
         query_filter = Filter(
             must=must_conditions,
-            must_not=must_not_conditions if must_not_conditions else None,
         )
 
         # Scroll para obtener todos los chunks que contienen el texto
@@ -464,7 +436,6 @@ class VectorDBService:
         filters: dict = None,
         range_filters: dict = None,
         exact_filters: dict = None,
-        role: str = "lector",
     ) -> list[dict]:
         """
         EL SÚPER BUSCADOR (Hybrid Search).
@@ -516,23 +487,15 @@ class VectorDBService:
                 if value is not None:
                     must_conditions.append(FieldCondition(key=field, match=MatchValue(value=value)))
 
-        # ── Payload filtering por visibilidad (RBAC) ──────────────
-        # Excluir documentos admin_only para cualquier rol que no sea admin.
-        visibility_condition = (
-            FieldCondition(key="visibility", match=MatchValue(value="admin_only"))
-            if role != "admin" else None
-        )
-
         def _build_filter(extra_must_text=None):
-            """Construye el Filter de Qdrant con soporte para must_not de visibilidad."""
+            """Construye el Filter de Qdrant con opciones de filtrado."""
             m = list(must_conditions)
             if extra_must_text:
                 m.append(extra_must_text)
             return Filter(
                 should=should_conditions if should_conditions else None,
                 must=m if m else None,
-                must_not=[visibility_condition] if visibility_condition else None,
-            ) if (should_conditions or m or visibility_condition) else None
+            ) if (should_conditions or m) else None
 
         # Filtros para ambas búsquedas
         semantic_filter = _build_filter()
