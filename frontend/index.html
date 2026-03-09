@@ -28,6 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     /* 
        SISTEMA DE DISEÑO (Design Tokens)
@@ -187,6 +188,21 @@
       margin: 0;
       cursor: pointer;
       pointer-events: auto;
+    }
+
+    .user-avatar-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, .6);
+      box-shadow: 0 2px 6px rgba(0,0,0,.12);
     }
 
     .app-brand-btn:focus-visible {
@@ -1990,28 +2006,15 @@
        "¿Qué dicen mis documentos sobre X?". 
        RAG significa que la IA leerá TUS archivos antes de responder.
   -->
-  <!-- ── MODAL DE AUTENTICACIÓN ────────────────────────────────────────── 
-       Puerta de acceso a la aplicación. Gestiona el login inicial 
-       y la persistencia del token JWT.
-  ────────────────────────────────────────────────────────────────────── -->
-  <div id="loginModal"
-    style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);">
+  <!-- ── GOOGLE LOGIN OVERLAY ──────────────────────────────────────── -->
+  <div id="googleLoginOverlay"
+    style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
     <div
-      style="background:#ffffff;border-radius:16px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:1rem;">
+      style="background:#ffffff;border-radius:16px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:1.2rem;">
       <img src="assets/atop(ai).svg" alt="atop(ai)" style="width:56px;height:56px;">
-      <h2 style="margin:0;font-size:1.5rem;font-weight:700;color:#14213d;">Iniciar sesión</h2>
-      <p style="margin:0;font-size:.875rem;color:#555;text-align:center;">Accede a Meiga Search con tus credenciales
-        corporativas</p>
-      <input id="loginUser" type="text" placeholder="Usuario" autocomplete="username"
-        style="width:100%;padding:.65rem .9rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.95rem;outline:none;color:#14213d;" />
-      <input id="loginPass" type="password" placeholder="Contraseña" autocomplete="current-password"
-        style="width:100%;padding:.65rem .9rem;border:1.5px solid #d1d5db;border-radius:8px;font-size:.95rem;outline:none;color:#14213d;" />
-      <button id="loginBtn"
-        style="width:100%;padding:.7rem;background:var(--accent);color:#ffffff;font-weight:700;font-size:1rem;border:none;border-radius:8px;cursor:pointer;">
-        Entrar
-      </button>
-      <p id="loginError" style="display:none;margin:0;font-size:.85rem;color:#dc2626;">Usuario o contraseña incorrectos
-      </p>
+      <h2 style="margin:0;font-size:1.5rem;font-weight:700;color:#14213d;">Bienvenido a atop(AI)</h2>
+      <p style="margin:0;font-size:.875rem;color:#555;text-align:center;">Inicia sesión con tu cuenta de Google para acceder</p>
+      <div id="googleSignInBtn" style="min-height:44px;"></div>
     </div>
   </div>
 
@@ -2144,9 +2147,13 @@
               </div>
             </div>
 
-            <button id="logoutBtn" class="btn btn--primary" data-action="logout" type="button">
-              Cerrar sesión
-            </button>
+            <!-- User avatar -->
+            <div id="userAvatarContainer" class="user-avatar-container" style="display:none">
+              <img id="userAvatarImg" class="user-avatar" src="" alt="User" />
+              <button id="userLogoutBtn" class="btn" data-action="google-logout" type="button" style="font-size:.78rem;padding:6px 12px;">
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2586,82 +2593,82 @@
       };
       const $ = id => document.getElementById(id);
 
-      /* ── Autenticación ─────────────────────────────────────────────── */
-      const MEIGA_TOKEN_KEY = 'meiga_token', MEIGA_ROLE_KEY = 'meiga_role';
+      /* ── Constantes de configuración ──────────────────────────── */
       const MEIGA_LLM_PROVIDER_KEY = 'meiga_llm_provider', MEIGA_LLM_MODEL_KEY = 'meiga_llm_model';
-      function getToken() { return localStorage.getItem(MEIGA_TOKEN_KEY); }
-      function getRole() { return localStorage.getItem(MEIGA_ROLE_KEY); }
-      function showLoginModal() { $('loginModal').style.display = 'flex'; }
-      /**
-       * RBAC (Role-Based Access Control)
-       * ------------------------------------------------------------------
-       * Esta función es crucial: decide qué botones ve el usuario según su rol.
-       * - 'admin': Puede hacer TODO (gestionar archivos, limpiar base de datos).
-       * - 'editor': Puede buscar y subir archivos nuevos.
-       * - 'viewer': Solo puede buscar y leer; no ve botones de gestión.
-       * 
-       * @param {string} role - El rol asignado ('admin', 'editor' o 'viewer').
-       */
-      function applyRoleUI(role) {
-        // Revelar interfaz principal
+      const GOOGLE_CLIENT_ID = '135777163886-q6ner6ejtejedv93napf99k83utk4d1n.apps.googleusercontent.com';
+      const GOOGLE_USER_KEY = 'atopai_google_user';
+
+      /* Stubs de compatibilidad */
+      function getToken() { return localStorage.getItem(GOOGLE_USER_KEY) ? 'google-auth' : ''; }
+      function getRole() { return 'admin'; }
+      function showLoginModal() { $('googleLoginOverlay').style.display = 'flex'; }
+
+      /* ── Revelar la app (tras login exitoso) ─────────────────── */
+      function revealApp(user) {
+        $('googleLoginOverlay').style.display = 'none';
         const shell = $('shellLayout'); if (shell) shell.style.display = '';
         const tb = $('topBar'); if (tb) tb.style.display = '';
+        const fm = $('fmContainer'); if (fm) fm.style.display = '';
+        const sb = $('settingsBtn'); if (sb) sb.style.display = 'inline-flex';
+        const ub = $('uploadBtn'); if (ub) ub.style.display = 'inline-flex';
+        window._userRole = 'admin';
 
-        // Controles solo para admin
-        const fm = $('fmContainer'); if (fm) fm.style.display = role === 'admin' ? '' : 'none';
-        const sb = $('settingsBtn'); if (sb) sb.style.display = role === 'admin' ? 'inline-flex' : 'none';
-
-        // (Opcional) Subida de archivos: admin y editor; oculto para lector
-        const ub = $('uploadBtn');
-        if (ub) ub.style.display = (role === 'admin' || role === 'editor') ? 'inline-flex' : 'none';
-
-        // Guardar rol para guards de drag-drop
-        window._userRole = role;
-        
-        // Revelar el Dashboard de la página de inicio
+        // Show user avatar in header
+        const container = $('userAvatarContainer');
+        const img = $('userAvatarImg');
+        if (container && img && user.picture) {
+          img.src = user.picture;
+          img.title = user.email || user.name || '';
+          container.style.display = 'flex';
+        }
         setHasSearched(false);
       }
-      $('loginBtn').addEventListener('click', async () => {
-        const u = $('loginUser').value.trim(), p = $('loginPass').value;
-        const errEl = $('loginError');
-        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
-        try {
-          const r = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: u, password: p })
-          });
-          if (!r.ok) { const d = await r.json(); throw new Error(d.detail || 'Credenciales incorrectas'); }
-          const d = await r.json();
-          localStorage.setItem(MEIGA_TOKEN_KEY, d.access_token);
-          localStorage.setItem(MEIGA_ROLE_KEY, d.role);
-          $('loginModal').style.display = 'none';
-          if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-          applyRoleUI(d.role);
-          await loadStoredDirectory();
-          showToast(`Bienvenido/a, ${u} (✓ ${d.role})`);
-          if (d.role === 'admin' && !localStorage.getItem('setupCompleted')) {
-            document.getElementById('setupModal').showModal();
+
+      /* ── Google Sign-In callback ─────────────────────────────── */
+      function handleGoogleCredential(response) {
+        // Decode JWT payload (base64url)
+        const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+        const user = {
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture,
+          sub: payload.sub,
+        };
+        localStorage.setItem(GOOGLE_USER_KEY, JSON.stringify(user));
+        revealApp(user);
+        showToast(`¡Bienvenido/a, ${user.name}!`);
+      }
+
+      function googleLogout() {
+        localStorage.removeItem(GOOGLE_USER_KEY);
+        location.reload();
+      }
+
+      /* ── Inicialización ──────────────────────────────────────── */
+      (function initApp() {
+        const savedUser = localStorage.getItem(GOOGLE_USER_KEY);
+        if (savedUser) {
+          // Sesión guardada: revelar app directamente
+          try {
+            const user = JSON.parse(savedUser);
+            revealApp(user);
+          } catch {
+            localStorage.removeItem(GOOGLE_USER_KEY);
           }
-        } catch (e) {
-          if (errEl) { errEl.textContent = e.message; errEl.style.display = 'block'; }
         }
-      });
-      $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click(); });
-      // Setup Modal — bloquear tecla Esc (el modal de onboarding no se puede cerrar sin completar)
-      (function initSetupModal() {
-        const sm = document.getElementById('setupModal');
-        if (sm) sm.addEventListener('cancel', e => e.preventDefault());
-      })();
-      (function initAuth() {
-        const tok = getToken();
-        if (tok) {
-          $('loginModal').style.display = 'none';
-          applyRoleUI(getRole());
-          if (getRole() === 'admin' && !localStorage.getItem('setupCompleted')) {
-            document.getElementById('setupModal').showModal();
+        // Renderizar botón de Google (visible solo en overlay)
+        window.addEventListener('load', () => {
+          if (typeof google !== 'undefined' && google.accounts) {
+            google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: handleGoogleCredential,
+            });
+            google.accounts.id.renderButton(
+              $('googleSignInBtn'),
+              { theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill', width: 300 }
+            );
           }
-        } else { $('loginModal').style.display = 'flex'; }
+        });
       })();
 
       /* ── Toast ─────────────────────────────────────────────── */
@@ -2911,12 +2918,7 @@
         } catch (e) { showToast(`Error: ${e.message}`) }
       }
 
-      /* ── Logout ──────────────────────────────────────────── */
-      function logoutUser() {
-        localStorage.removeItem(MEIGA_TOKEN_KEY);
-        localStorage.removeItem(MEIGA_ROLE_KEY);
-        location.reload();
-      }
+
 
       /* ── Search mode ───────────────────────────────────────── */
       function setMode(m) {
@@ -3151,9 +3153,10 @@
 	            case 'open-settings':
 	              openSettingsModal();
 	              break;
-	            case 'logout':
-	              logoutUser();
+	            case 'google-logout':
+	              googleLogout();
 	              break;
+
 	            case 'load-more':
 	              loadMoreResults();
 	              break;
