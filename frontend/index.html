@@ -2121,8 +2121,9 @@
             </button>
 
             <div id="fmContainer" style="position:relative;display:none">
+              <!-- El setup modal se ha eliminado para que la experiencia sea directa al arrastrar y soltar PDFs -->
               <button id="fmTriggerBtn" class="btn btn--primary" data-action="toggle-fm" aria-label="Gestionar archivos"
-                type="button">
+                type="button" style="display:none;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                   <path
                     d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zm8.485 0H2.5a.5.5 0 0 0-.5.5V12.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V5.914a.5.5 0 0 0-.5-.5H7.264a.5.5 0 0 1-.447-.276L6.353 3.5H2.5z" />
@@ -2774,16 +2775,8 @@
       }
       function updateDirUI(path) {
         state.rootDirPath = path;
-        const el = $('fmDirName');
-        if (path) {
-          el.textContent = dirName(path);
-          el.classList.remove('fm-dir-name--unset');
-          $('pickerOverlay').style.display = 'none';
-        } else {
-          el.textContent = 'Sin configurar';
-          el.classList.add('fm-dir-name--unset');
-          if (getToken()) $('pickerOverlay').style.display = 'flex';
-        }
+        // La UI de selección de directorio se ha deshabilitado para usar subidas por usuario online.
+        $('pickerOverlay').style.display = 'none';
       }
       async function loadStoredDirectory() {
         try { const s = await dbGet(DIR_KEY); if (s && typeof s === 'string') updateDirUI(s); else updateDirUI(null) }
@@ -2802,7 +2795,6 @@
 
       async function handlePickedFiles(fileList) {
         if (!fileList || fileList.length === 0) {
-          if (!state.rootDirPath) $('pickerOverlay').style.display = 'flex';
           return;
         }
         const files = Array.from(fileList).filter(f => {
@@ -2811,7 +2803,6 @@
         });
         if (files.length === 0) {
           showToast('Ningún archivo compatible (.pdf, .txt, .csv, .xlsx)');
-          if (!state.rootDirPath) $('pickerOverlay').style.display = 'flex';
           return;
         }
 
@@ -2850,8 +2841,6 @@
 
         if (succeeded > 0) {
           $('uploadProgressTitle').textContent = 'Subida completada';
-          await dbSet(DIR_KEY, 'local_uploads');
-          updateDirUI('local_uploads');
           resetSearchState();
           // Finalizar onboarding si el modal de setup estaba activo
           const _setupModal = document.getElementById('setupModal');
@@ -2864,13 +2853,10 @@
             `✓ ${succeeded} archivo${pl(succeeded)} subido${pl(succeeded)} correctamente` +
             (failed > 0 ? ` · ${failed} con error` : '') +
             '. Indexando en segundo plano…';
-          $('pickerHint').style.display = 'none';
         } else {
           $('uploadProgressTitle').textContent = 'Error en la subida';
           $('uploadProgressStatus').textContent =
             'No se pudo subir ningún archivo. Comprueba que estás autenticado y que el formato es válido.';
-          if (!state.rootDirPath) $('pickerOverlay').style.display = 'flex';
-          $('pickerHint').style.display = 'flex';
         }
         $('uploadProgressDoneBtn').style.display = 'inline-block';
       }
@@ -3597,15 +3583,15 @@
 
 	      window.addEventListener('dragenter', (e) => {
 	        e.preventDefault();
-	        // Solo activamos D&D si hay un rootDir configurado y el usuario puede subir
-	        if (!state.rootDirPath || window._userRole === 'lector') return;
+	        // Solo permitimos a los usuarios con rol adecuado, sin requerir directorio raíz
+	        if (window._userRole === 'lector') return;
 	        dragCounter++;
 	        $('dragOverlay').classList.add('active');
 	      });
 
 	      window.addEventListener('dragleave', (e) => {
 	        e.preventDefault();
-	        if (!state.rootDirPath || window._userRole === 'lector') return;
+	        if (window._userRole === 'lector') return;
 	        dragCounter--;
 	        if (dragCounter === 0) {
 	          $('dragOverlay').classList.remove('active');
@@ -3618,7 +3604,7 @@
 
 	      window.addEventListener('drop', async (e) => {
 	        e.preventDefault();
-	        if (!state.rootDirPath || window._userRole === 'lector') return;
+	        if (window._userRole === 'lector') return;
 
         dragCounter = 0;
         $('dragOverlay').classList.remove('active');
