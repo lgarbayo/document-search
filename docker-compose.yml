@@ -1,0 +1,69 @@
+services:
+  # ─── Redis (Broker + Backend para Celery) ───
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ─── Qdrant (Vector Database) ───
+  qdrant:
+    image: qdrant/qdrant:latest
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # ─── FastAPI App ───
+  app:
+    build: .
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - COLLECTION_NAME=corporate_docs
+      - EMBEDDING_PROVIDER=sentence-transformers
+      - EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+      - EMBEDDING_DIM=384
+      - LLM_PROVIDER=local
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=200
+      - UPLOAD_DIR=/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: on-failure
+
+  # ─── Celery Worker ───
+  worker:
+    build: .
+    command: celery -A workers.celery_app worker --loglevel=info --concurrency=2
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - COLLECTION_NAME=corporate_docs
+      - EMBEDDING_PROVIDER=sentence-transformers
+      - EMBEDDING_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+      - EMBEDDING_DIM=384
+      - LLM_PROVIDER=local
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=200
+      - UPLOAD_DIR=/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    restart: on-failure
+
+volumes:
+  redis_data:
+  qdrant_data:
