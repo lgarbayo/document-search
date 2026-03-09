@@ -14,7 +14,7 @@ PASOS DE LA FÁBRICA:
 """
 
 import logging
-from workers.celery_app import celery_app
+
 from services.document_extractor import (
     extract_document_content,
     clean_text,
@@ -27,8 +27,7 @@ from core.config import settings
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True, name="workers.tasks.process_document")
-def process_document(self, file_path: str, original_filename: str) -> dict:
+def process_document(file_path: str, original_filename: str) -> dict:
     """
     Ejecuta el ciclo de vida completo de ingesta de un documento.
 
@@ -37,7 +36,6 @@ def process_document(self, file_path: str, original_filename: str) -> dict:
     se encuentra su archivo.
 
     Args:
-        self (Task): Referencia a la tarea para gestión de estados.
         file_path (str): Ruta al archivo temporal en el servidor.
         original_filename (str): Nombre del archivo para visualización en resultados.
 
@@ -50,19 +48,16 @@ def process_document(self, file_path: str, original_filename: str) -> dict:
     """
     try:
         # ── Paso 1: Extraer texto y metadatos ──
-        self.update_state(state="PROCESSING", meta={"step": "extracting_text"})
         logger.info(f"📄 Extrayendo contenido de: {original_filename}")
         raw_text, doc_metadata = extract_document_content(file_path)
         logger.info(f"   → {len(raw_text)} caracteres extraídos. Categoría: {doc_metadata.get('category')}")
 
         # ── Paso 2: Limpiar ──
-        self.update_state(state="PROCESSING", meta={"step": "cleaning_text"})
         logger.info("🧹 Limpiando texto...")
         cleaned_text = clean_text(raw_text)
         logger.info(f"   → {len(cleaned_text)} caracteres tras limpieza")
 
         # ── Paso 2b: Generar resumen con LLM (no bloqueante — best-effort) ──
-        self.update_state(state="PROCESSING", meta={"step": "summarizing"})
         summary = ""
         try:
             from services.llm_service import get_llm_service
@@ -73,20 +68,17 @@ def process_document(self, file_path: str, original_filename: str) -> dict:
             logger.warning(f"⚠️  Resumen LLM no disponible ({type(e).__name__}): {e}")
 
         # ── Paso 3: Fragmentar ──
-        self.update_state(state="PROCESSING", meta={"step": "chunking"})
         logger.info(f"✂️  Fragmentando (size={settings.CHUNK_SIZE}, overlap={settings.CHUNK_OVERLAP})...")
         chunks = chunk_text(cleaned_text, size=settings.CHUNK_SIZE, overlap=settings.CHUNK_OVERLAP)
         logger.info(f"   → {len(chunks)} chunks generados")
 
         # ── Paso 4: Deduplicar ──
-        self.update_state(state="PROCESSING", meta={"step": "deduplicating"})
         total_before = len(chunks)
         chunks = deduplicate_chunks(chunks)
         duplicates_removed = total_before - len(chunks)
         logger.info(f"🔍 Deduplicación: {duplicates_removed} duplicados eliminados, {len(chunks)} chunks únicos")
 
         # ── Paso 5: Vectorizar y guardar ──
-        self.update_state(state="PROCESSING", meta={"step": "embedding_and_storing"})
         logger.info("🧠 Vectorizando e insertando en Qdrant...")
 
         vdb = VectorDBService()

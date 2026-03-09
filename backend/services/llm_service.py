@@ -1,19 +1,8 @@
 """
 services/llm_service.py — EL CEREBRO DE LA APLICACIÓN (IA).
 ---------------------------------------------------------
-Este módulo es el que permite que Meiga "hable" y "entienda". Es el puente 
-hacia los Modelos de Lenguaje (LLM).
-
-LO MEJOR DE DOS MUNDOS:
-- PRIVACIDAD TOTAL (local): Puedes usar un modelo que corre en tu propio 
-  servidor (SmolLM). Tus datos no salen de tu oficina.
-- POTENCIA MÁXIMA (nube): Puedes conectar con OpenAI, Gemini o Claude para 
-  que Meiga sea extremadamente inteligente.
-
-¿POR QUÉ USAMOS UNA FÁBRICA (FACTORY)?
-Porque así el resto de la app no tiene que saber si usas OpenAI o un modelo 
-local. La app solo dice "Dame una respuesta" y este módulo decide quién 
-es el mejor cerebro para el trabajo en ese momento.
+Ahora simplificada exclusivamente para Gemini y evitar dependencias innecesarias 
+en entornos de bajos recursos.
 """
 
 import os
@@ -47,177 +36,6 @@ class BaseLLMProvider(ABC):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  PROVEEDOR LOCAL — HuggingFaceTB/SmolLM2-135M (CPU)
-# ═══════════════════════════════════════════════════════════════
-
-class LocalSmolLMProvider(BaseLLMProvider):
-    """
-    Motor local basado en SmolLM2-135M de Hugging Face.
-
-    Optimizado para ejecutarse en entornos corporativos con restricciones de 
-    datos o hardware limitado. Utiliza cuantización dinámica para reducir 
-    drásticamente el uso de memoria RAM sin sacrificar demasiada precisión.
-    """
-    _pipeline = None
-
-    def _get_pipeline(self):
-        if LocalSmolLMProvider._pipeline is None:
-            import torch
-            from transformers import pipeline as hf_pipeline
-
-            logger.info("🔄 Cargando HuggingFaceTB/SmolLM2-135M (LLM local)...")
-            pipe = hf_pipeline(
-                "text-generation",
-                model="HuggingFaceTB/SmolLM2-135M",
-                device=-1,          # CPU
-                dtype=torch.float32,
-            )
-            # Cuantización int8 para reducir footprint de RAM
-            pipe.model = torch.quantization.quantize_dynamic(
-                pipe.model, {torch.nn.Linear}, dtype=torch.qint8
-            )
-            pipe.model.eval()
-            LocalSmolLMProvider._pipeline = pipe
-            logger.info("✅ SmolLM2-135M cargado y cuantizado")
-
-        return LocalSmolLMProvider._pipeline
-
-    def _generate(self, prompt: str, max_new_tokens: int = 200) -> str:
-        pipe = self._get_pipeline()
-        result = pipe(
-            prompt,
-            max_new_tokens=max_new_tokens,
-            do_sample=False,
-            temperature=1.0,
-            repetition_penalty=1.2,
-            pad_token_id=pipe.tokenizer.eos_token_id,
-        )
-        generated = result[0]["generated_text"]
-        # Recortar el prompt del output
-        return generated[len(prompt):].strip()
-
-    def summarize(self, text: str) -> str:
-        prompt = (
-            f"Resume el siguiente texto corporativo en 3-5 frases en español:\n\n"
-            f"{text[:2000]}\n\n"
-            f"Resumen:"
-        )
-        return self._generate(prompt, max_new_tokens=200)
-
-    def _format_history_smollm(self, context: str, prompt: str, history: list[dict] = None) -> str:
-        historico = ""
-        if history:
-            for msg in history[-4:]: # Solo los 4 últimos para no saturar contexto
-                role = "Humano" if msg.get("role") == "user" else "Asistente"
-                historico += f"{role}: {msg.get('content')}\n\n"
-        
-        full_prompt = (
-            f"Contexto del documento:\n{context[:3000]}\n\n"
-        )
-        if historico:
-            full_prompt += f"Historial de conversación:\n{historico}"
-        
-        full_prompt += f"Pregunta: {prompt}\n\nRespuesta:"
-        return full_prompt
-
-    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
-        full_prompt = self._format_history_smollm(context, prompt, history)
-        return self._generate(full_prompt, max_new_tokens=250)
-
-    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
-        # SmolLM/Transformers pipeline no tiene un streamer súper limpio out-of-the-box sin TextStreamer
-        # Para simplificar y no bloquear, hacemos un fake stream (devolvemos todo de golpe)
-        # En un entorno real se usaría TextIteratorStreamer de transformers
-        ans = self.chat(prompt, context, history)
-        # Dividimos en palabras para fingir el stream
-        for word in ans.split(" "):
-            yield word + " "
-
-
-
-
-# ═══════════════════════════════════════════════════════════════
-#  PROVEEDOR OPENAI
-# ═══════════════════════════════════════════════════════════════
-
-class OpenAIProvider(BaseLLMProvider):
-    """
-    Integración oficial con los modelos GPT de OpenAI.
-
-    Utiliza el SDK de OpenAI para ofrecer la mayor calidad de respuesta y 
-    velocidad de inferencia. Soporta streaming nativo.
-    """
-    def __init__(self):
-        import openai
-        self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.model = os.getenv("OPENAI_LLM_MODEL", "gpt-4o-mini")
-        logger.info(f"✅ OpenAI LLM inicializado: {self.model}")
-
-    def _complete(self, system: str, user: str) -> str:
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user",   "content": user},
-            ],
-            max_tokens=512,
-            temperature=0.3,
-        )
-        return resp.choices[0].message.content.strip()
-
-    def summarize(self, text: str) -> str:
-        return self._complete(
-            system=(
-                "Eres un asistente experto en resumir documentos corporativos en español. "
-                "Responde SOLO con el resumen, sin preámbulos ni explicaciones."
-            ),
-            user=f"Resume este texto en 3-5 frases:\n\n{text}",
-        )
-
-    def _build_messages_openai(self, prompt: str, context: str, history: list[dict] = None) -> list[dict]:
-        system = (
-            "Eres un asistente corporativo. Responde basándote EXCLUSIVAMENTE "
-            "en el contexto proporcionado. Usa [1], [2], etc. para citar las fuentes "
-            "si se te proporcionan identificadores. Si no está en el documento, indícalo."
-        )
-        msgs = [{"role": "system", "content": f"{system}\n\nContexto:\n{context}"}]
-        
-        if history:
-            for h in history[-6:]: # max 6 mensajes de historial
-                role = "assistant" if h.get("role") == "assistant" else "user"
-                msgs.append({"role": role, "content": h.get("content", "")})
-        
-        msgs.append({"role": "user", "content": prompt})
-        return msgs
-
-    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
-        msgs = self._build_messages_openai(prompt, context, history)
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=msgs,
-            max_tokens=512,
-            temperature=0.3,
-        )
-        return resp.choices[0].message.content.strip()
-
-    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
-        msgs = self._build_messages_openai(prompt, context, history)
-        resp = self.client.chat.completions.create(
-            model=self.model,
-            messages=msgs,
-            max_tokens=512,
-            temperature=0.3,
-            stream=True,
-        )
-        for chunk in resp:
-            content = chunk.choices[0].delta.content
-            if content:
-                yield content
-
-
-
-
-# ═══════════════════════════════════════════════════════════════
 #  PROVEEDOR GOOGLE GEMINI
 # ═══════════════════════════════════════════════════════════════
 
@@ -231,7 +49,7 @@ class GeminiProvider(BaseLLMProvider):
     def __init__(self):
         import google.generativeai as genai
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        model_name = os.getenv("GEMINI_LLM_MODEL", "gemini-2.5-flash")
+        model_name = os.getenv("GEMINI_LLM_MODEL", "gemini-2.0-flash")
         self.model = genai.GenerativeModel(model_name)
         logger.info(f"✅ Gemini LLM inicializado: {model_name}")
 
@@ -273,123 +91,24 @@ class GeminiProvider(BaseLLMProvider):
                 yield chunk.text
 
 
-
-
 # ═══════════════════════════════════════════════════════════════
-#  PROVEEDOR ANTHROPIC CLAUDE
-# ═══════════════════════════════════════════════════════════════
-
-class ClaudeProvider(BaseLLMProvider):
-    """
-    Integración con Anthropic Claude.
-
-    Reconocido por su excelente seguimiento de instrucciones y capacidad 
-    de síntesis detallada. Requiere ANTHROPIC_API_KEY.
-    """
-    def __init__(self):
-        import anthropic
-        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        self.model = os.getenv("CLAUDE_LLM_MODEL", "claude-3-haiku-20240307")
-        logger.info(f"✅ Claude LLM inicializado: {self.model}")
-
-    def _complete(self, system: str, user: str) -> str:
-        resp = self.client.messages.create(
-            model=self.model,
-            max_tokens=512,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        return resp.content[0].text.strip()
-
-    def summarize(self, text: str) -> str:
-        return self._complete(
-            system=(
-                "Eres un asistente experto en resumir documentos corporativos. "
-                "Responde SOLO con el resumen en español, sin preámbulos."
-            ),
-            user=f"Resume este texto en 3-5 frases:\n\n{text}",
-        )
-
-    def _build_messages_claude(self, prompt: str, context: str, history: list[dict] = None):
-        system = (
-            "Eres un asistente corporativo. Responde basándote EXCLUSIVAMENTE "
-            "en el contexto. Usa identificadores [1], [2] para citar fuentes. "
-            "Si la respuesta no está en el documento, indícalo claramente.\n\n"
-            f"Contexto:\n{context}"
-        )
-        msgs = []
-        if history:
-            for h in history[-6:]:
-                role = "assistant" if h.get("role") == "assistant" else "user"
-                msgs.append({"role": role, "content": h.get("content", "")})
-        
-        msgs.append({"role": "user", "content": prompt})
-        return system, msgs
-
-    def chat(self, prompt: str, context: str, history: list[dict] = None) -> str:
-        system, msgs = self._build_messages_claude(prompt, context, history)
-        resp = self.client.messages.create(
-            model=self.model,
-            max_tokens=512,
-            system=system,
-            messages=msgs,
-        )
-        return resp.content[0].text.strip()
-
-    def chat_stream(self, prompt: str, context: str, history: list[dict] = None):
-        system, msgs = self._build_messages_claude(prompt, context, history)
-        with self.client.messages.stream(
-            model=self.model,
-            max_tokens=512,
-            system=system,
-            messages=msgs,
-        ) as stream:
-            for text in stream.text_stream:
-                yield text
-
-
-
-
-# ═══════════════════════════════════════════════════════════════
-#  FACTORY — selecciona el proveedor por variable de entorno
+#  FACTORY — selecciona el proveedor (forzado a Gemini)
 # ═══════════════════════════════════════════════════════════════
 
 class LLMFactory:
-    """
-    LA FÁBRICA DE CEREBROS (LLMFactory).
-    -----------------------------------
-    Esta clase es como un selector de enchufes. Dependiendo de lo que diga 
-    la configuración (`LLM_PROVIDER`), ella instancia el proveedor correcto.
-    
-    PATRÓN SINGLETON: Solo cargamos el modelo una vez en memoria para 
-    no gastar RAM innecesariamente.
-    """
     _instance: BaseLLMProvider | None = None
 
     @classmethod
     def get_provider(cls) -> BaseLLMProvider:
         if cls._instance is None:
-            provider = os.getenv("LLM_PROVIDER", "local").lower()
-            logger.info(f"🏭 Inicializando LLM provider: '{provider}'")
-            if provider == "openai":
-                cls._instance = OpenAIProvider()
-            elif provider == "gemini":
-                cls._instance = GeminiProvider()
-            elif provider == "claude":
-                cls._instance = ClaudeProvider()
-            else:
-                # Fallback a local si el valor no es reconocido
-                if provider not in ("local",):
-                    logger.warning(f"⚠️  LLM_PROVIDER='{provider}' no reconocido, usando 'local'")
-                cls._instance = LocalSmolLMProvider()
+            logger.info(f"🏭 Inicializando LLM provider forzado a: Gemini")
+            cls._instance = GeminiProvider()
         return cls._instance
 
     @classmethod
     def reset(cls) -> None:
-        """Invalida la instancia en caché para forzar re-inicialización con nuevo proveedor."""
         cls._instance = None
 
 
 def get_llm_service() -> BaseLLMProvider:
-    """Acceso global al proveedor LLM activo. Importar desde cualquier módulo."""
     return LLMFactory.get_provider()

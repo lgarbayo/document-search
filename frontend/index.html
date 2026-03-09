@@ -2477,22 +2477,11 @@
 
     <!-- SETTINGS MODAL -->
     <dialog id="settingsModal" class="settings-dialog">
-      <h2>&#9881;&#65039;&nbsp; Configuración LLM</h2>
-      <label for="settingsProvider">Proveedor</label>
-      <select id="settingsProvider" onchange="onSettingsProviderChange()">
-        <option value="local">Local — SmolLM2-135M (sin clave)</option>
-        <option value="openai">OpenAI (gpt-4o-mini)</option>
-        <option value="gemini">Google Gemini (gemini-1.5-flash)</option>
-        <option value="claude">Anthropic Claude (claude-3-haiku)</option>
-      </select>
-      <div id="settingsApiKeyRow" style="display:none;">
-        <label for="settingsApiKey">API Key</label>
-        <input id="settingsApiKey" type="password" placeholder="sk-… / AIza…" autocomplete="off" />
-      </div>
-      <div id="settingsModelRow" style="display:none;">
-        <label for="settingsModel">Modelo personalizado <span
-            style="font-weight:400;text-transform:none;">(opcional)</span></label>
-        <input id="settingsModel" type="text" placeholder="gpt-4o / gemini-1.5-pro / claude-3-5-sonnet…" />
+      <h2>&#9881;&#65039;&nbsp; Configuración Google Gemini</h2>
+      
+      <div id="settingsApiKeyRow">
+        <label for="settingsApiKey">Gemini API Key</label>
+        <input id="settingsApiKey" type="password" placeholder="AIza…" autocomplete="off" />
       </div>
       <div class="settings-actions">
         <button class="settings-btn-cancel" onclick="document.getElementById('settingsModal').close()">Cancelar</button>
@@ -2916,35 +2905,22 @@
 
       /* ── Settings modal ─────────────────────────────────────── */
       function openSettingsModal() {
-        const savedProvider = localStorage.getItem(MEIGA_LLM_PROVIDER_KEY);
-        const savedModel = localStorage.getItem(MEIGA_LLM_MODEL_KEY);
-        if (savedProvider) $('settingsProvider').value = savedProvider;
-        if (savedModel) $('settingsModel').value = savedModel;
-        onSettingsProviderChange();
         document.getElementById('settingsModal').showModal();
       }
-      function onSettingsProviderChange() {
-        const p = $('settingsProvider').value;
-        $('settingsApiKeyRow').style.display = p === 'local' ? 'none' : 'block';
-        $('settingsModelRow').style.display = p === 'local' ? 'none' : 'block';
-      }
       async function saveSettings() {
-        const provider = $('settingsProvider').value;
+        const provider = "gemini";
         const api_key = $('settingsApiKey').value.trim() || null;
-        const model_name = $('settingsModel').value.trim() || null;
         try {
           const r = await fetch('/api/system/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
-            body: JSON.stringify({ provider, api_key, model_name })
+            body: JSON.stringify({ provider, api_key })
           });
           if (r.status === 401) { showLoginModal(); return; }
           if (!r.ok) { const d = await r.json(); throw new Error(d.detail || `HTTP ${r.status}`); }
           localStorage.setItem(MEIGA_LLM_PROVIDER_KEY, provider);
-          if (model_name) localStorage.setItem(MEIGA_LLM_MODEL_KEY, model_name);
-          else localStorage.removeItem(MEIGA_LLM_MODEL_KEY);
           document.getElementById('settingsModal').close();
-          showToast(`✅ Proveedor LLM cambiado a '${provider}'`);
+          showToast(`✅ Configuración de Gemini actualizada`);
         } catch (e) {
           showToast(`❌ ${e.message}`, 5000);
         }

@@ -23,16 +23,16 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-
-from celery.result import AsyncResult
 from core.config import settings
-from fastapi import (APIRouter, File, HTTPException, Query, Request,
+from fastapi import (APIRouter, BackgroundTasks, File, HTTPException, Query, Request,
                      UploadFile)
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from services.document_extractor import SUPPORTED_EXTENSIONS, normalize_query
 from services.vector_db import VectorDBService
 from workers.tasks import process_document
+
+_UPLOAD_STATUS: dict[str, dict] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,7 @@ router = APIRouter()
 
 @router.post("/upload", tags=["Ingesta"])
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
 ):
     """
@@ -59,9 +60,10 @@ async def upload_document(
 
     Args:
         file (UploadFile): El documento binario enviado por el cliente.
+        background_tasks (BackgroundTasks): Cola de tareas asíncronas interna de FastAPI.
 
     Returns:
-        JSONResponse: Estado 202 Accepted con el ID de la tarea de Celery.
+        JSONResponse: Estado 202 Accepted con el ID de la tarea local.
 
     Nota: El estado del procesamiento debe consultarse vía /api/status/{task_id}.
     """
@@ -92,16 +94,30 @@ async def upload_document(
             detail=f"Error interno al guardar el documento: {e}"
         )
 
-    # Disparar tarea a Celery worker (llamada no bloqueante)
-    task = process_document.delay(str(file_path), file.filename)
+    # Generar un ID de tarea local
+    task_id = str(uuid.uuid4())
+    _UPLOAD_STATUS[task_id] = {"status": "PROCESSING", "filename": file.filename}
 
-    logger.info(f"🚀 Tarea de Celery disparada: {task.id} para {file.filename}")
+    # Función envoltorio para acoplar la función que antes era de Celery
+    async def process_and_update():
+        try:
+            # Ejecutamos el procesamiento en otro hilo para no bloquear el Event Loop de FastAPI
+            await asyncio.to_thread(process_document, str(file_path), file.filename)
+            _UPLOAD_STATUS[task_id] = {"status": "SUCCESS", "filename": file.filename}
+        except Exception as e:
+            logger.error(f"Error procesando documento {file.filename}: {e}")
+            _UPLOAD_STATUS[task_id] = {"status": "FAILURE", "error": str(e), "filename": file.filename}
+
+    # Disparar tarea a BackgroundTasks (hilo local)
+    background_tasks.add_task(process_and_update)
+
+    logger.info(f"🚀 Tarea local disparada: {task_id} para {file.filename}")
 
     return JSONResponse(
         status_code=202,
         content={
-            "message": "Documento recibido. Procesamiento iniciado.",
-            "task_id": task.id,
+            "message": "Documento recibido. Procesamiento iniciado en segundo plano.",
+            "task_id": task_id,
             "filename": file.filename,
         }
     )
@@ -130,24 +146,25 @@ async def get_task_status(task_id: str):
     Returns:
         dict: Estado actual, y metadatos o resultado si la tarea ha finalizado.
     """
-    result = AsyncResult(task_id)
+    status_info = _UPLOAD_STATUS.get(task_id)
+    if not status_info:
+        return {
+            "task_id": task_id,
+            "status": "UNKNOWN",
+            "error": "Tarea no encontrada en memoria (probablemente expirada)"
+        }
 
     response = {
         "task_id": task_id,
-        "status": result.status,
+        "status": status_info["status"],
     }
 
-    # Si la tarea está en proceso, incluimos el detalle del paso enviado por el worker.
-    if result.state == "PROCESSING":
-        response["detail"] = result.info
-
-    # Si la tarea terminó con éxito, adjuntamos el objeto resultado.
-    elif result.state == "SUCCESS":
-        response["result"] = result.result
-
-    # Si la tarea falló, el objeto 'info' suele contener la descripción del error.
-    elif result.state == "FAILURE":
-        response["error"] = str(result.info)
+    if status_info["status"] == "FAILURE":
+        response["error"] = status_info.get("error", "Error desconocido")
+    
+    # Detalle genérico (en la versión full usábamos los pasos de Celery)
+    if status_info["status"] == "PROCESSING":
+        response["detail"] = {"step": "Procesando fragmentos intermedios..."}
 
     return response
 
@@ -748,9 +765,8 @@ async def document_chat(
 # ═══════════════════════════════════════════════════════════════
 
 class LLMSettingsRequest(BaseModel):
-    provider: str                    # "local" | "openai" | "gemini" | "claude"
+    provider: str                    # "gemini"
     api_key: str | None = None
-    model_name: str | None = None
 
 
 @router.post("/system/settings", tags=["Sistema"])
@@ -772,27 +788,13 @@ async def update_llm_settings(
         dict: Confirmación de actualización del proveedor.
     """
 
-    valid_providers = {"local", "openai", "gemini", "claude"}
-    if body.provider not in valid_providers:
-        raise HTTPException(status_code=422, detail=f"Proveedor no válido. Opciones: {valid_providers}")
+    if body.provider != "gemini":
+        raise HTTPException(status_code=422, detail="Solo se admite el proveedor 'gemini' actualmente.")
 
-    os.environ["LLM_PROVIDER"] = body.provider
+    os.environ["LLM_PROVIDER"] = "gemini"
 
     if body.api_key:
-        if body.provider == "openai":
-            os.environ["OPENAI_API_KEY"] = body.api_key
-        elif body.provider == "gemini":
-            os.environ["GEMINI_API_KEY"] = body.api_key
-        elif body.provider == "claude":
-            os.environ["ANTHROPIC_API_KEY"] = body.api_key
-
-    if body.model_name:
-        if body.provider == "openai":
-            os.environ["OPENAI_LLM_MODEL"] = body.model_name
-        elif body.provider == "gemini":
-            os.environ["GEMINI_LLM_MODEL"] = body.model_name
-        elif body.provider == "claude":
-            os.environ["CLAUDE_LLM_MODEL"] = body.model_name
+        os.environ["GEMINI_API_KEY"] = body.api_key
 
     # Resetear el singleton para que la próxima llamada cargue el nuevo proveedor
     from services.llm_service import LLMFactory
