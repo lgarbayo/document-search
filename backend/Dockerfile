@@ -6,9 +6,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Instala dependencias del sistema para PyMuPDF y ExifTool
+# Instala dependencias del sistema para PyMuPDF, ExifTool y procesamiento de imágenes/IA
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc curl tesseract-ocr tesseract-ocr-spa libimage-exiftool-perl && \
+    apt-get install -y --no-install-recommends \
+    gcc curl tesseract-ocr tesseract-ocr-spa \
+    libimage-exiftool-perl poppler-utils libgomp1 && \
     rm -rf /var/lib/apt/lists/*
 
 # Instala dependencias Python

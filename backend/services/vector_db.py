@@ -111,33 +111,6 @@ class OpenAIProvider(EmbeddingProvider):
         return self._dim
 
 
-class GeminiEmbeddingProvider(EmbeddingProvider):
-    """
-    Embeddings usando la API de Google Gemini (Generative AI).
-
-    Modelo recomendado: 'text-embedding-004' (768 dims).
-    Requiere GEMINI_API_KEY.
-    """
-
-    def __init__(self, model_name: str = None):
-        import google.generativeai as genai
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self._model_name = model_name or "models/text-embedding-004"
-        self._dim = settings.EMBEDDING_DIM if settings.EMBEDDING_PROVIDER == "gemini" else 768
-
-    def embed(self, texts: list[str]) -> list[list[float]]:
-        import google.generativeai as genai
-        response = genai.embed_content(
-            model=self._model_name,
-            content=texts,
-            task_type="retrieval_document",
-        )
-        return response['embedding']
-
-    def dimension(self) -> int:
-        return self._dim
-
-
 from functools import lru_cache
 
 @lru_cache(maxsize=1)
@@ -148,12 +121,9 @@ def get_embedding_provider() -> EmbeddingProvider:
     settings.EMBEDDING_PROVIDER puede ser:
       - "sentence-transformers" (por defecto, local, gratis)
       - "openai" (requiere API key)
-      - "gemini" (requiere API key)
     """
     if settings.EMBEDDING_PROVIDER == "openai":
         return OpenAIProvider()
-    if settings.EMBEDDING_PROVIDER == "gemini":
-        return GeminiEmbeddingProvider()
     return SentenceTransformerProvider()
 
 

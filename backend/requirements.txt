@@ -15,6 +15,7 @@ beautifulsoup4==4.12.3
 lxml==5.3.0
 
 # Embeddings
+torch>=2.0.0
 sentence-transformers==3.1.1
 
 # Keyword Extraction (reemplaza al LLM generativo)

@@ -61,9 +61,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "local"
     
     # Identificadores específicos de modelo para cada proveedor en la nube.
-    OPENAI_LLM_MODEL: str = "gpt-4o-mini"
     GEMINI_LLM_MODEL: str = "gemini-2.0-flash"
-    CLAUDE_LLM_MODEL: str = "claude-3-haiku-20240307"
 
     # ─── Parámetros de Procesamiento de Documentos ───
     # Límite de caracteres para cada fragmento para asegurar que quepan en el contexto del LLM.
