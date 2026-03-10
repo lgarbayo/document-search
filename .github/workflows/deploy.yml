@@ -10,22 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Deploy to EC2 via SSH
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          cd /home/${{ secrets.EC2_USER }}/document-search || exit 1
-          
-          # Actualiza el código desde el repositorio (forzando reescritura de cambios locales)
-          git fetch origin main
-          git reset --hard origin/main
-          
-          # Reconstruir los contenedores (reiniciando solo los que cambiaron)
-          docker compose down || true
-          docker compose up -d --build
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_USER }}/document-search || exit 1
+            
+            # Actualizar el codigo desde el repositorio (forzando reescritura de cambios locales)
+            git fetch origin main
+            git reset --hard origin/main
+            
+            # Reconstruir los contenedores (reiniciando solo los que cambiaron)
+            docker-compose down || true
+            docker-compose up -d --build
