@@ -164,18 +164,40 @@
     }
     
     @media (max-width: 768px) {
+      .app-header__top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+      .app-logo {
+        width: 50px !important;
+        height: 50px !important;
+      }
+      .app-header__actions {
+        width: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+      }
       .home-dashboard {
         grid-template-columns: 1fr;
       }
       .search-bar-wrapper {
         width: 95% !important;
+        margin: 0 auto;
       }
-      .app-header__actions {
-        gap: 6px;
+      .search-input {
+        font-size: 1rem !important;
       }
-      .app-header__actions .btn {
-        font-size: .75rem;
-        padding: 6px 10px;
+      .btn {
+        font-size: .8rem;
+        padding: 8px 12px;
+      }
+      .hero-title {
+        font-size: 2.5rem !important;
+        margin: 40px 0 20px !important;
+      }
+      .hero-title span.subtitle {
+        font-size: 1rem !important;
       }
       .user-avatar-container {
         gap: 4px;
