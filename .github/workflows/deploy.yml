@@ -27,5 +27,5 @@ jobs:
             git reset --hard origin/main
             
             # Reconstruir los contenedores (reiniciando solo los que cambiaron)
-            docker-compose down || true
-            docker-compose up -d --build
+            docker compose down || true
+            docker compose up -d --build
