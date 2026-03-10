@@ -1,0 +1,80 @@
+{
+  "header": {
+    "settings": "LLM Settings",
+    "manage_files": "Manage Files",
+    "add_docs": "Add Documents",
+    "upload_files": "Upload files",
+    "upload_folder": "Upload folder",
+    "loading_docs": "Loading documents...",
+    "clear_db": "Clear Database",
+    "logout": "Sign Out"
+  },
+  "login": {
+    "welcome": "Welcome to",
+    "subtitle": "Sign in with your Google account to access"
+  },
+  "hero": {
+    "explore": "Explore your",
+    "knowledge": "Knowledge"
+  },
+  "search": {
+    "placeholder": "What document or functionality do you need?",
+    "button": "Search",
+    "semantic": "Semantic Search",
+    "textual": "Textual Search"
+  },
+  "home": {
+    "indexed": "Indexed Documents",
+    "recent": "Recent searches",
+    "clear_all": "Clear all"
+  },
+  "drag": {
+    "title": "Drop the file here",
+    "subtitle": "It will be uploaded and indexed automatically"
+  },
+  "picker": {
+    "title": "Upload your documents",
+    "desc": "Select a folder or files from your device to index them in Meiga Search. Supported formats: PDF, DOCX, PPTX, TXT, CSV, XLSX, JSON, XML, MD, HTML, PNG, JPG.",
+    "btn_folder": "Select folder",
+    "btn_files": "Select files",
+    "hint": "Some files could not be uploaded. Check the format and try again."
+  },
+  "results": {
+    "meta_found": "documents found",
+    "meta_found_singular": "document found",
+    "matches": "matches",
+    "match_singular": "match",
+    "more_matches": "more matches",
+    "more_match_singular": "more match",
+    "no_results": "No results found for",
+    "try_again": "Try other search terms.",
+    "load_more": "Load more results",
+    "loading": "Loading…"
+  },
+  "doc_detail": {
+    "title": "Document",
+    "metadata": "Metadata",
+    "summary": "Summary",
+    "ask": "Ask",
+    "summary_title": "Document summary",
+    "generating_summary": "Generating summary…",
+    "chat_title": "Ask the document",
+    "chat_placeholder": "Type your question about this document…",
+    "chat_send": "Send",
+    "metadata_title": "Technical Metadata"
+  },
+  "settings": {
+    "title": "Google Gemini Configuration",
+    "desc": "Optional. It is securely stored in your browser.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Settings saved successfully."
+  },
+  "system": {
+    "error_indexing": "Error indexing:",
+    "indexed_success": "files indexed successfully.",
+    "db_cleared": "Local database cleared.",
+    "signing_out": "Signing out…",
+    "files_uploaded": "Files or folders uploaded"
+  }
+}

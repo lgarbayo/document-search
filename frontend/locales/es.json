@@ -1,0 +1,80 @@
+{
+  "header": {
+    "settings": "Ajustes LLM",
+    "manage_files": "Gestionar archivos",
+    "add_docs": "Añadir documentos",
+    "upload_files": "Subir archivos",
+    "upload_folder": "Subir carpeta",
+    "loading_docs": "Cargando documentos...",
+    "clear_db": "Limpiar base de datos",
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "welcome": "Bienvenido a",
+    "subtitle": "Inicia sesión con tu cuenta de Google para acceder"
+  },
+  "hero": {
+    "explore": "Explora tu",
+    "knowledge": "Conocimiento"
+  },
+  "search": {
+    "placeholder": "¿Qué documento o funcionalidad necesitas?",
+    "button": "Buscar",
+    "semantic": "Búsqueda semántica",
+    "textual": "Búsqueda textual"
+  },
+  "home": {
+    "indexed": "Documentos Indexados",
+    "recent": "Búsquedas recientes",
+    "clear_all": "Borrar todo"
+  },
+  "drag": {
+    "title": "Suelta el archivo aquí",
+    "subtitle": "Se subirá y se indexará automáticamente"
+  },
+  "picker": {
+    "title": "Sube tus documentos",
+    "desc": "Selecciona una carpeta o archivos desde tu dispositivo para indexarlos en Meiga Search. Formatos admitidos: PDF, DOCX, PPTX, TXT, CSV, XLSX, JSON, XML, MD, HTML, PNG, JPG.",
+    "btn_folder": "Seleccionar carpeta",
+    "btn_files": "Seleccionar archivos",
+    "hint": "Algunos archivos no pudieron subirse. Comprueba el formato y vuelve a intentarlo."
+  },
+  "results": {
+    "meta_found": "documentos encontrados",
+    "meta_found_singular": "documento encontrado",
+    "matches": "coincidencias",
+    "match_singular": "coincidencia",
+    "more_matches": "coincidencias más",
+    "more_match_singular": "coincidencia más",
+    "no_results": "No se encontraron resultados para",
+    "try_again": "Prueba con otros términos de búsqueda.",
+    "load_more": "Cargar más resultados",
+    "loading": "Cargando…"
+  },
+  "doc_detail": {
+    "title": "Documento",
+    "metadata": "Metadatos",
+    "summary": "Resumen",
+    "ask": "Preguntar",
+    "summary_title": "Resumen del documento",
+    "generating_summary": "Generando resumen…",
+    "chat_title": "Pregunta al documento",
+    "chat_placeholder": "Escribe tu pregunta sobre este documento…",
+    "chat_send": "Enviar",
+    "metadata_title": "Metadatos Técnicos"
+  },
+  "settings": {
+    "title": "Configuración Google Gemini",
+    "desc": "Opcional. Se guarda de forma segura en tu navegador.",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saved": "Ajustes guardados correctamente."
+  },
+  "system": {
+    "error_indexing": "Error al indexar:",
+    "indexed_success": "archivos indexados.",
+    "db_cleared": "Base de datos local limpia.",
+    "signing_out": "Cerrando sesión…",
+    "files_uploaded": "Archivos o carpetas subidos"
+  }
+}

@@ -42,14 +42,15 @@
     :root {
       --text: #14213d;
       /* Azul Medianoche para texto principal */
-      --accent: #1f2937;
-      /* Gris carbón para llamadas a la acción y resaltados */
-      --accent-hover: #111827;
-      --highlight-bg: rgba(31, 41, 55, 0.22);
+      --accent: #8b5cf6;
+      /* Morado vibrante (pruple-500) para botones y text bg */
+      --accent-hover: #7c3aed;
+      /* Morado oscuro (purple-600) para hover */
+      --highlight-bg: rgba(139, 92, 246, 0.22);
       --surface: #ffffff;
       /* Fondo de componentes y tarjetas */
-      --bg: #e5e5e5;
-      /* Fondo base de la aplicación */
+      --bg: #faf8f5;
+      /* Fondo base de la aplicación (blanco roto) */
     }
 
     * {
@@ -74,13 +75,13 @@
       box-decoration-break: clone;
     }
 
-    /* Smooth gradient background — dark amber bottom to soft white top */
+    /* Fondo principal blanco roto */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
       z-index: -1;
-      background: #b2bdd3;
+      background: var(--bg);
     }
 
     /* App shell */
@@ -97,10 +98,9 @@
       position: sticky;
       top: 0;
       z-index: 600;
-      background: rgba(229, 231, 235, .55);
+      background: rgba(250, 248, 245, 0.85); /* rgba value of var(--bg) for transparency */
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid rgba(0, 0, 0, .06);
     }
 
     .app-header__inner {
@@ -117,15 +117,18 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      position: relative;
     }
 
     .app-header__actions {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 12px;
       flex-wrap: wrap;
     }
+
+
 
     .app-header__controls {
       display: flex;
@@ -152,11 +155,12 @@
     .dashboard-col {
       display: flex;
       flex-direction: column;
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      min-height: 250px;
     }
     
     @media (max-width: 768px) {
@@ -206,16 +210,16 @@
     .user-avatar-container {
       display: flex;
       align-items: center;
-      gap: 8px;
     }
 
     .user-avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid rgba(255, 255, 255, .6);
-      box-shadow: 0 2px 6px rgba(0,0,0,.12);
+      border: 1.5px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 2px 4px rgba(0,0,0,.05);
+      margin-right: 2px;
     }
 
     .app-brand-btn:focus-visible {
@@ -225,8 +229,8 @@
     }
 
     .app-logo {
-      width: 56px;
-      height: 56px;
+      width: 80px;
+      height: 80px;
       display: block;
     }
 
@@ -235,16 +239,16 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 18px 4px 18px 4px;
-      border: 1px solid rgba(0, 0, 0, .12);
-      background: rgba(255, 255, 255, .55);
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 8px; /* Bordes redondeados normales */
+      border: 1px solid rgba(0, 0, 0, .08);
+      background: rgba(255, 255, 255, .8);
       color: #111827;
       cursor: pointer;
       font-family: 'Inter', 'Roboto', sans-serif;
-      font-size: .84rem;
-      font-weight: 700;
+      font-size: .95rem; /* Botones algo más grandes */
+      font-weight: 600;
       transition: background .15s, transform .1s, box-shadow .15s;
       user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -269,13 +273,20 @@
     .btn--primary {
       background: var(--accent);
       color: #ffffff;
-      border-color: rgba(0, 0, 0, .12);
-      box-shadow: 0 2px 8px rgba(17, 24, 39, .18);
+      border-color: var(--accent);
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.25);
     }
 
     .btn--primary:hover {
       background: var(--accent-hover);
-      box-shadow: 0 4px 12px rgba(17, 24, 39, .22);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.35);
+    }
+
+    /* Override specifically for the Search button inside the wrapper */
+    .search-bar-wrapper .btn--primary {
+      border-radius: 10px; /* Proportional scale */
+      padding: 14px 32px; /* Scaled up */
+      font-size: 1.1rem; /* Scaled up */
     }
 
     .btn--link {
@@ -424,26 +435,92 @@
       text-align: center;
     }
 
+    .app-title-centered {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-size: 5.5rem; /* Scaled up */
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 80px 0 40px;
+      color: var(--text);
+      line-height: 1.1;
+      text-align: center;
+      transition: opacity 0.3s;
+    }
+
+    .text-gradient {
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      background-image: linear-gradient(90deg, #6366f1, #a855f7); /* Indigo to Purple gradient */
+    }
+
+    .hero-title span.subtitle {
+      display: block;
+      font-size: 1.25rem; /* Scaled up */
+      font-weight: 400;
+      letter-spacing: normal;
+      line-height: 1.6;
+      margin-top: 16px;
+      color: #6b7280;
+      text-transform: none;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-shortcuts {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+      margin-bottom: 20px;
+      transition: opacity 0.3s;
+    }
+
+    .hero-shortcuts .btn--link {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px; /* Proportional scale */
+      padding: 10px 20px; /* Scaled up */
+      font-size: 0.95rem; /* Scaled up */
+      font-weight: 500;
+      color: #374151;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-shortcuts .btn--link:hover {
+      background: #f3f4f6;
+      color: #111827;
+      text-decoration: none;
+    }
+
     /* 
        LA BARRA DE BÚSQUEDA (El componente estrella)
-       ------------------------------------------------------------------
-       Usa 'backdrop-filter: blur' para que el fondo de la página se vea 
-       desenfocado por detrás, dando un efecto de "cristal esmerilado".
-       Las esquinas asimétricas (20px 4px) son nuestra firma visual.
     */
     .search-bar-wrapper {
       display: flex;
       align-items: center;
       width: 60%;
       margin: 0 auto;
-      background: rgba(255, 255, 255, .25);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1.5px solid rgba(255, 255, 255, .45);
-      border-radius: 20px 4px 20px 4px;
-      /* Estilo de esquinas asimétricas característico */
-      padding: 0 12px 0 12px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, .08);
+      background: #ffffff;
+      border: 1px solid #f3f4f6;
+      border-radius: 16px; /* Scaled up slightly */
+      padding: 8px 8px 8px 24px; /* Scaled up */
+      box-shadow: 0 4px 24px rgba(0, 0, 0, .04);
       transition: box-shadow .2s ease, border-color .2s;
     }
 
@@ -459,15 +536,15 @@
       outline: none;
       background: transparent;
       font-family: 'Inter', 'Roboto', sans-serif;
-      font-size: 1rem;
+      font-size: 1.25rem; /* Scaled up */
       color: #000000;
-      padding: 18px 12px 18px 0;
+      padding: 22px 16px 22px 0; /* Scaled up */
     }
 
     #searchInput::placeholder {
-      font-family: 'Times New Roman', Georgia, serif;
-      font-style: italic;
-      color: rgba(0, 0, 0, .55);
+      font-family: 'Inter', 'Roboto', sans-serif; /* Consistent Typography */
+      font-style: normal; /* No cursiva */
+      color: rgba(0, 0, 0, .45);
     }
 
     #searchInput:disabled {
@@ -479,26 +556,21 @@
     .mode-toggle {
       display: inline-flex;
       align-items: center;
-      background: rgba(255, 255, 255, .1);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 20px 4px 20px 4px;
-      padding: 3px;
-      gap: 2px;
+      gap: 12px;
     }
 
     .mode-btn {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 7px 18px;
-      border: none;
-      border-radius: 16px 3px 16px 3px;
-      background: transparent;
-      color: rgba(0, 0, 0, 0.85);
+      padding: 10px 20px; /* Scaled up */
+      border: 1px solid #e5e7eb;
+      border-radius: 24px; /* Proportional scale */
+      background: #ffffff;
+      color: #374151;
       cursor: pointer;
       font-family: 'Inter', 'Roboto', sans-serif;
-      font-size: .82rem;
+      font-size: 0.95rem; /* Scaled up */
       font-weight: 500;
       transition: background .15s, color .15s;
       white-space: nowrap;
@@ -507,8 +579,7 @@
     .mode-btn.active {
       background: var(--accent);
       color: #ffffff;
-      font-weight: 700;
-      box-shadow: 0 1px 6px rgba(17, 24, 39, .25);
+      border-color: var(--accent);
     }
 
     .mode-btn:hover:not(.active) {
@@ -996,22 +1067,21 @@
 
     /* Result card */
     .result-card {
-      background: rgba(255, 255, 255, .12);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, .18);
-      border-radius: 16px 4px 16px 4px;
-      padding: 18px 22px;
+      background: #ffffff;
+      border: 1px solid #f3f4f6;
+      border-radius: 12px;
+      padding: 24px 28px; /* Proportional scale */
       cursor: pointer;
       outline: none;
-      transition: box-shadow .15s, transform .12s, background .15s;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, .02); /* Faint purple base glow */
+      transition: box-shadow .2s ease, transform .15s ease, border-color .2s;
     }
 
     .result-card:hover,
     .result-card:focus-visible {
-      box-shadow: 0 4px 18px rgba(0, 0, 0, .15);
-      background: rgba(255, 255, 255, .2);
-      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(139, 92, 246, .06); /* Slightly stronger purple hover glow */
+      border-color: #e5e7eb;
+      transform: translateY(-2px);
     }
 
     .result-card__head {
@@ -1037,13 +1107,12 @@
     }
 
     .match-badge {
-      font-size: .7rem;
-      font-weight: 700;
-      color: rgba(0, 0, 0, .8);
-      background: rgba(17, 24, 39, .08);
-      border: 1px solid rgba(0, 0, 0, .08);
-      padding: 3px 8px;
-      border-radius: 10px;
+      font-size: .85rem; /* Scaled up */
+      font-weight: 600;
+      color: #374151;
+      background: #f3f4f6;
+      padding: 6px 14px; /* Scaled up */
+      border-radius: 16px; /* Scaled up */
       white-space: nowrap;
     }
 
@@ -1056,10 +1125,10 @@
 	    }
 
     .result-frag {
-      padding: 10px 14px;
+      padding: 12px 18px; /* Scaled up */
       border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      font-size: .82rem;
-      line-height: 1.5;
+      font-size: .95rem; /* Scaled up */
+      line-height: 1.6;
       color: rgba(0, 0, 0, .78);
     }
 
@@ -1071,23 +1140,27 @@
     }
 
     .doc-type {
-      font-size: .65rem;
+      font-size: .8rem; /* Scaled up */
       font-weight: 700;
-      letter-spacing: .1em;
+      letter-spacing: .12em; /* Adjusted */
       color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px; /* Added spacing */
+      display: inline-block;
     }
 
     .doc-title {
-      font-size: .95rem;
-      font-weight: 600;
-      color: #000000;
+      font-size: 1.35rem; /* Scaled up heavily for hierarchy */
+      font-weight: 800;
+      color: #111827;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      margin-bottom: 8px; /* Added spacing */
     }
 
     .score-badge {
-      font-size: .75rem;
+      font-size: .85rem; /* Scaled up */
       font-weight: 700;
       color: var(--accent);
       white-space: nowrap;
@@ -1095,31 +1168,36 @@
     }
 
     .fragment {
-      font-size: .85rem;
-      color: rgba(0, 0, 0, .85);
-      line-height: 1.65;
-      margin: 0 0 14px;
+      font-size: .95rem; /* Scaled up */
+      color: rgba(17, 24, 39, .85);
+      line-height: 1.7; /* Increased for readability */
+      margin: 0 0 16px;
     }
 
     .fragment mark {
-      background: var(--highlight-bg);
-      color: inherit;
+      background: rgba(139, 92, 246, 0.15); /* Soft purple background */
+      color: #7c3aed; /* Dark purple text */
+      font-weight: 500;
+      padding: 0 2px;
+      border-radius: 2px;
     }
 
     .tag {
-      font-size: .65rem;
-      padding: 2px 8px;
+      font-size: .75rem; /* Scaled up */
+      font-weight: 600;
+      padding: 6px 14px; /* Scaled up */
       background: var(--accent);
-      border-radius: 8px;
+      border-radius: 16px; /* Match new match-badge scale */
       color: #ffffff;
+      text-transform: uppercase;
     }
 
     /* Results header */
     .results-meta {
       display: none;
-      font-size: .78rem;
+      font-size: 1rem; /* Scaled up heavily for visibility */
       font-weight: 800;
-      color: rgba(0, 0, 0, .78);
+      color: rgba(20, 33, 61, .85);
       margin: 0;
       padding-bottom: 12px;
     }
@@ -2021,12 +2099,12 @@
   -->
   <!-- ── GOOGLE LOGIN OVERLAY ──────────────────────────────────────── -->
   <div id="googleLoginOverlay"
-    style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+    style="position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(250,248,245,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);">
     <div
-      style="background:#ffffff;border-radius:16px;padding:2.5rem 2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;gap:1.2rem;">
-      <img src="assets/atop(ai).svg" alt="atop(ai)" style="width:56px;height:56px;">
-      <h2 style="margin:0;font-size:1.5rem;font-weight:700;color:#14213d;">Bienvenido a atop(AI)</h2>
-      <p style="margin:0;font-size:.875rem;color:#555;text-align:center;">Inicia sesión con tu cuenta de Google para acceder</p>
+      style="background:#ffffff;border:1px solid #f3f4f6;border-radius:20px;padding:3rem 3rem 2.5rem;width:100%;max-width:440px;box-shadow:0 8px 32px rgba(0,0,0,0.04);display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+      <img src="assets/atop(ai).svg" alt="atop(ai)" style="width:72px;height:72px;">
+      <h2 style="margin:0;font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;"><span data-i18n="login.welcome">Bienvenido a</span> <span class="text-gradient">atop(AI)</span></h2>
+      <p style="margin:0;font-size:1rem;color:#6b7280;text-align:center;line-height:1.5;" data-i18n="login.subtitle">Inicia sesión con tu cuenta de Google para acceder</p>
       <div id="googleSignInBtn" style="min-height:44px;"></div>
     </div>
   </div>
@@ -2040,8 +2118,8 @@
         <path
           d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
       </svg>
-      <h2 class="drag-title">Suelta el archivo aquí</h2>
-      <p class="drag-subtitle">Se subirá y se indexará automáticamente</p>
+      <h2 class="drag-title" data-i18n="drag.title">Suelta el archivo aquí</h2>
+      <p class="drag-subtitle" data-i18n="drag.subtitle">Se subirá y se indexará automáticamente</p>
     </div>
   </div>
 
@@ -2063,8 +2141,8 @@
             d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
         </svg>
       </div>
-      <h2 class="picker-title">Sube tus documentos</h2>
-      <p class="picker-desc">Selecciona una carpeta o archivos desde tu dispositivo para indexarlos en Meiga Search.
+      <h2 class="picker-title" data-i18n="picker.title">Sube tus documentos</h2>
+      <p class="picker-desc" data-i18n="picker.desc">Selecciona una carpeta o archivos desde tu dispositivo para indexarlos en Meiga Search.
         Formatos admitidos: PDF, DOCX, PPTX, TXT, CSV, XLSX, JSON, XML, MD, HTML, PNG, JPG.</p>
 
       <!-- Inputs nativos del navegador (invisible, se disparan por los botones) -->
@@ -2091,7 +2169,7 @@
           <path
             d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5v2a1 1 0 0 0 1 1h2L9.5 1.5z" />
         </svg>
-        <span>Seleccionar archivos</span>
+        <span data-i18n="picker.btn_files">Seleccionar archivos</span>
       </button>
 
       <p class="picker-hint" id="pickerHint" style="display:none">
@@ -2099,7 +2177,7 @@
           <path
             d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
         </svg>
-        Algunos archivos no pudieron subirse. Comprueba el formato y vuelve a intentarlo.
+        <span data-i18n="picker.hint">Algunos archivos no pudieron subirse. Comprueba el formato y vuelve a intentarlo.</span>
       </p>
     </div>
   </div>
@@ -2114,9 +2192,13 @@
             <img src="assets/atop(ai).svg" alt="atop(ai)" class="app-logo" />
           </button>
 
+          <div class="app-title-centered" id="appTitle">
+            atop(ai)
+          </div>
+
           <div class="app-header__actions">
             <button id="settingsBtn" class="btn btn--primary" style="display:none;" data-action="open-settings"
-              type="button">
+              type="button" data-i18n="header.settings">
               Ajustes LLM
             </button>
 
@@ -2128,7 +2210,7 @@
                   <path
                     d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.12 1.349l.459 1.025H13.5A1.5 1.5 0 0 1 15 5.914V12.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zm8.485 0H2.5a.5.5 0 0 0-.5.5V12.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V5.914a.5.5 0 0 0-.5-.5H7.264a.5.5 0 0 1-.447-.276L6.353 3.5H2.5z" />
                 </svg>
-                <span>Gestionar archivos</span>
+                <span data-i18n="header.manage_files">Gestionar archivos</span>
                 <svg id="fmChevron" class="fm-chevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
                   fill="currentColor" viewBox="0 0 16 16">
                   <path fill-rule="evenodd"
@@ -2138,24 +2220,24 @@
 
               <div class="fm-backdrop" id="fmBackdrop" style="display:none" data-action="close-fm"></div>
               <div class="fm-popover popover-base" id="fmPopover" style="display:none">
-                <span class="fm-section-label">Añadir documentos</span>
+                <span class="fm-section-label" data-i18n="header.add_docs">Añadir documentos</span>
 
                 <button class="fm-action-btn" type="button" onclick="document.getElementById('pickerFileInput').click(); closeFmMenu();">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M4 0h5.293A1 1 0 0 1 10 .293L13.707 4a1 1 0 0 1 .293.707V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm5.5 1.5v2a1 1 0 0 0 1 1h2L9.5 1.5zM8 6.5a.5.5 0 0 0-1 0v2H5a.5.5 0 0 0 0 1h2v2a.5.5 0 0 0 1 0v-2h2a.5.5 0 0 0 0-1H8v-2z"/>
                   </svg>
-                  <span>Subir archivos</span>
+                  <span data-i18n="header.upload_files">Subir archivos</span>
                 </button>
 
                 <button class="fm-action-btn" type="button" onclick="document.getElementById('pickerFolderInput').click(); closeFmMenu();">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M.5 3.5A1.5 1.5 0 0 1 2 2h3.204a1.5 1.5 0 0 1 1.06.44L7.147 3.32A.5.5 0 0 0 7.5 3.5H14a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H2A1.5 1.5 0 0 1 .5 13V3.5zM8 7.5a.5.5 0 0 0-1 0v2H5a.5.5 0 0 0 0 1h2v2a.5.5 0 0 0 1 0v-2h2a.5.5 0 0 0 0-1H8v-2z"/>
                   </svg>
-                  <span>Subir carpeta</span>
+                  <span data-i18n="header.upload_folder">Subir carpeta</span>
                 </button>
 
                 <div class="fm-divider"></div>
-                <span class="fm-section-label" style="font-size:.75rem;color:rgba(0,0,0,0.4);" id="fmDocCount">Cargando documentos...</span>
+                <span class="fm-section-label" style="font-size:.75rem;color:rgba(0,0,0,0.4);" id="fmDocCount" data-i18n="header.loading_docs">Cargando documentos...</span>
                 <div class="fm-divider"></div>
 
                 <button class="fm-action-btn danger" data-action="clear-database" type="button">
@@ -2165,26 +2247,30 @@
                     <path fill-rule="evenodd"
                       d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
                   </svg>
-                  <span>Limpiar base de datos</span>
+                  <span data-i18n="header.clear_db">Limpiar base de datos</span>
                 </button>
               </div>
             </div>
 
-            <!-- User avatar -->
+            <!-- User avatar inside button -->
             <div id="userAvatarContainer" class="user-avatar-container" style="display:none">
-              <img id="userAvatarImg" class="user-avatar" src="" alt="User" />
-              <button id="userLogoutBtn" class="btn" data-action="google-logout" type="button" style="font-size:.78rem;padding:6px 12px;">
-                Cerrar sesión
+              <button id="userLogoutBtn" class="btn btn--primary" data-action="google-logout" type="button" style="padding: 6px 16px 6px 8px;">
+                <img id="userAvatarImg" class="user-avatar" src="" alt="User" />
+                <span data-i18n="header.logout">Cerrar sesión</span>
               </button>
             </div>
           </div>
         </div>
 
+        <h1 id="heroTitle" class="hero-title">
+          <span data-i18n="hero.explore">Explora tu</span> <span class="text-gradient" data-i18n="hero.knowledge">Conocimiento</span>
+        </h1>
+
         <div class="search-bar-wrapper">
-          <input id="searchInput" type="text" placeholder="¿Qué documento o funcionalidad necesitas?"
+          <input id="searchInput" type="text" placeholder="¿Qué documento o funcionalidad necesitas?" data-i18n-placeholder="search.placeholder"
             autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search documents" />
           <div class="flex items-center gap-2 pl-2 flex-shrink-0">
-            <button id="searchBtn" class="btn btn--primary" data-action="search" type="button">Buscar</button>
+            <button id="searchBtn" class="btn btn--primary" data-action="search" type="button" data-i18n="search.button">Buscar</button>
           </div>
         </div>
 
@@ -2195,14 +2281,14 @@
                 <path
                   d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.243 1.656A5.5 5.5 0 1 1 8 2.5a5.5 5.5 0 0 1 0 11z" />
               </svg>
-              <span>Búsqueda semántica</span>
+              <span data-i18n="search.semantic">Búsqueda semántica</span>
             </button>
             <button class="mode-btn" id="modeTextBtn" data-action="set-mode" data-mode="text" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path
                   d="M2.244 13.081l.943-2.803H6.66l.944 2.803H8.86L5.54 3.75H4.322L1 13.081h1.244zm2.7-7.923L6.34 9.314H3.51l1.4-4.156h.034zm9.146 7.027h.035v.896h1.128V8.125c0-1.51-1.114-2.345-2.646-2.345-1.736 0-2.59.916-2.666 2.174h1.108c.068-.718.595-1.19 1.517-1.19.971 0 1.518.52 1.518 1.464v.731H12.19c-1.647.007-2.522.8-2.522 2.058 0 1.319.957 2.18 2.345 2.18 1.06 0 1.716-.43 2.078-1.011zm-1.763.035c-.752 0-1.456-.397-1.456-1.244 0-.65.424-1.115 1.408-1.115h1.805v.834c0 .896-.752 1.525-1.757 1.525z" />
               </svg>
-              <span>Búsqueda textual</span>
+              <span data-i18n="search.textual">Búsqueda textual</span>
             </button>
           </div>
         </div>
@@ -2217,7 +2303,7 @@
         <!-- Left Column: Indexed Documents -->
         <div id="indexSection" class="dashboard-col">
           <div class="flex items-center justify-between mb-2" style="padding:0 2px">
-            <span class="recent-label">Documentos Indexados</span>
+            <span class="recent-label" data-i18n="home.indexed">Documentos Indexados</span>
             <span id="indexCount" class="text-sm" style="color:var(--accent); font-weight:600"></span>
           </div>
           <ul id="indexList" class="m-0 p-0 flex flex-col gap-1"></ul>
@@ -2226,8 +2312,8 @@
         <!-- Right Column: Recent searches -->
         <div id="recentSection" class="dashboard-col">
           <div class="flex items-center justify-between mb-2" style="padding:0 2px">
-            <span class="recent-label">Búsquedas recientes</span>
-            <button class="clear-all-btn" data-action="clear-history" type="button">Borrar todo</button>
+            <span class="recent-label" data-i18n="home.recent">Búsquedas recientes</span>
+            <button class="clear-all-btn" data-action="clear-history" type="button" data-i18n="home.clear_all">Borrar todo</button>
           </div>
           <ul id="recentList" class="m-0 p-0 flex flex-col gap-1"></ul>
         </div>
@@ -2264,7 +2350,7 @@
               <path
                 d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
             </svg>
-            Cargar más resultados
+            <span data-i18n="results.load_more">Cargar más resultados</span>
           </button>
         </div>
       </div> <!-- Closes Results section -->
@@ -2318,7 +2404,7 @@
     <div class="dd-backdrop" id="ddModal" style="display:none" onclick="if(event.target===this)closeDocDetail()">
       <div class="dd-modal">
         <div class="dd-header">
-          <h2 id="ddTitle">Documento</h2>
+          <h2 id="ddTitle" data-i18n="doc_detail.title">Documento</h2>
           <button class="dd-close" onclick="closeDocDetail()" aria-label="Cerrar">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
               <path
@@ -2341,7 +2427,7 @@
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                 <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
               </svg>
-              Metadatos
+              <span data-i18n="doc_detail.metadata">Metadatos</span>
             </button>
             <button class="dd-chat-toggle" id="ddSummaryToggle" onclick="toggleDocSummary()">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
@@ -2350,14 +2436,14 @@
                 <path
                   d="M4.5 11.5A.5.5 0 0 1 5 11h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 9h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 7h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 5h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z" />
               </svg>
-              Resumen
+              <span data-i18n="doc_detail.summary">Resumen</span>
             </button>
             <button class="dd-chat-toggle" id="ddChatToggle" onclick="toggleDocChat()">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
                 <path
                   d="M2.678 11.894a1 1 0 0 1 .287.801 11 11 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8 8 0 0 0 8 14c3.996 0 7-2.807 7-6s-3.004-6-7-6-7 2.808-7 6c0 1.468.617 2.83 1.678 3.894" />
               </svg>
-              Preguntar
+              <span data-i18n="doc_detail.ask">Preguntar</span>
             </button>
           </div>
         </div>
@@ -2365,10 +2451,10 @@
         <div id="ddSummaryPanel" class="dd-summary-panel">
           <p
             style="margin:0 0 4px;font-size:.75rem;font-weight:700;color:rgba(20,33,61,.45);text-transform:uppercase;letter-spacing:.5px;">
-            &#128196; Resumen del documento</p>
+            &#128196; <span data-i18n="doc_detail.summary_title">Resumen del documento</span></p>
           <div id="ddSummaryContent">
             <div class="dd-summary-loading">
-              <div class="spinner" style="width:16px;height:16px;"></div> Generando resumen…
+              <div class="spinner" style="width:16px;height:16px;"></div> <span data-i18n="doc_detail.generating_summary">Generando resumen…</span>
             </div>
           </div>
         </div>
@@ -2377,12 +2463,12 @@
           style="display:none;border-top:1px solid rgba(20,33,61,.08);padding:16px 24px 20px;background:#f9fafb;flex-direction:column;gap:10px;">
           <p
             style="margin:0;font-size:.75rem;font-weight:700;color:rgba(20,33,61,.45);text-transform:uppercase;letter-spacing:.5px;">
-            &#x1F4AC; Pregunta al documento</p>
+            &#x1F4AC; <span data-i18n="doc_detail.chat_title">Pregunta al documento</span></p>
           <div class="dd-chat-messages" id="ddChatMessages"></div>
           <div style="display:flex;gap:8px;">
             <input id="ddChatInput" class="dd-chat-input" type="text"
-              placeholder="Escribe tu pregunta sobre este documento…" />
-            <button id="ddChatSend" class="dd-chat-send" onclick="sendChatMessage()">Enviar</button>
+              placeholder="Escribe tu pregunta sobre este documento…" data-i18n-placeholder="doc_detail.chat_placeholder" />
+            <button id="ddChatSend" class="dd-chat-send" onclick="sendChatMessage()" data-i18n="doc_detail.chat_send">Enviar</button>
           </div>
         </div>
       </div>
@@ -2392,7 +2478,7 @@
     <div class="dd-backdrop" id="metadataModal" style="display:none;z-index:9999" onclick="if(event.target===this)this.style.display='none'">
       <div class="dd-modal" style="height:auto;display:flex;flex-direction:column;max-width:700px;width:90%">
         <div class="dd-header">
-          <h2 id="metadataTitle">Metadatos Técnicos</h2>
+          <h2 id="metadataTitle" data-i18n="doc_detail.metadata_title">Metadatos Técnicos</h2>
           <button class="dd-close" onclick="document.getElementById('metadataModal').style.display='none'" aria-label="Cerrar">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
               <path
@@ -2407,15 +2493,15 @@
 
     <!-- SETTINGS MODAL -->
     <dialog id="settingsModal" class="settings-dialog">
-      <h2>Configuración Google Gemini</h2>
+      <h2 data-i18n="settings.title">Configuración Google Gemini</h2>
       
       <div id="settingsApiKeyRow">
         <label for="settingsApiKey">Gemini API Key</label>
         <input id="settingsApiKey" type="password" placeholder="AIza…" autocomplete="off" />
       </div>
       <div class="settings-actions">
-        <button class="settings-btn-cancel" onclick="document.getElementById('settingsModal').close()">Cancelar</button>
-        <button class="settings-btn-save" onclick="saveSettings()">Guardar</button>
+        <button class="settings-btn-cancel" onclick="document.getElementById('settingsModal').close()" data-i18n="settings.cancel">Cancelar</button>
+        <button class="settings-btn-save" onclick="saveSettings()" data-i18n="settings.save">Guardar</button>
       </div>
     </dialog>
 
@@ -2590,8 +2676,47 @@
         location.reload();
       }
 
+      // --- LOCALIZATION (i18n) ---
+      window.i18nData = {};
+      window.userLang = (navigator.language || navigator.userLanguage).startsWith('es') ? 'es' : 'en';
+
+      window.t = function(key) {
+        const keys = key.split('.');
+        let val = window.i18nData;
+        for (const k of keys) {
+          if (val) val = val[k];
+        }
+        return val || key;
+      };
+
+      async function initI18n() {
+        try {
+          const res = await fetch(`locales/${window.userLang}.json`);
+          if (res.ok) {
+            window.i18nData = await res.json();
+          } else {
+            const fallbackRes = await fetch(`locales/en.json`);
+            window.i18nData = await fallbackRes.json();
+          }
+        } catch (e) {
+          console.error("i18n load failed", e);
+        }
+        
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (key && window.t(key) !== key) el.textContent = window.t(key);
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+          const key = el.getAttribute('data-i18n-placeholder');
+          if (key && window.t(key) !== key) el.placeholder = window.t(key);
+        });
+      }
+      // ---------------------------
+
       /* ── Inicialización ──────────────────────────────────────── */
-      (function initApp() {
+      (async function initApp() {
+        await initI18n();
         const savedUser = localStorage.getItem(GOOGLE_USER_KEY);
         if (savedUser) {
           // Sesión guardada: revelar app directamente
@@ -2625,12 +2750,20 @@
       function esc(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
 
       /* ── Medium date ───────────────────────────────────────── */
-      function mediumDate(iso) { try { return new Date(iso).toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return iso || '' } }
+      function mediumDate(iso) { try { return new Date(iso).toLocaleDateString(window.userLang === 'es' ? 'es-ES' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' }) } catch { return iso || '' } }
 
       /* ── Interfaz y Diseño ────────────────────────────────────────────── */
       function setHasSearched(v) {
         state.hasSearched = v;
         $('homeDashboard').style.display = !v ? 'grid' : 'none';
+        
+        const heroTitle = $('heroTitle');
+        const heroShortcuts = $('heroShortcuts');
+        const appTitle = $('appTitle');
+
+        if (heroTitle) heroTitle.style.display = !v ? 'block' : 'none';
+        if (heroShortcuts) heroShortcuts.style.display = !v ? 'flex' : 'none';
+        if (appTitle) appTitle.style.display = !v ? 'block' : 'none';
         
         // If returning home, load the left column list
         if (!v) loadIndexedDocuments();
@@ -2882,7 +3015,7 @@
 	        const n = Number(toggleBtn.dataset.extraCount || extraList.childElementCount || 0);
 	        const txt = toggleBtn.querySelector('.btn-text');
 	        if (txt) {
-	          txt.textContent = nextOpen ? 'Ocultar coincidencias' : `Ver ${n} coincidencia${n !== 1 ? 's' : ''} más`;
+	          txt.textContent = nextOpen ? (window.userLang==='es' ? 'Ocultar coincidencias' : 'Hide matches') : `+ ${n} ${n === 1 ? window.t('results.more_match_singular') : window.t('results.more_matches')}`;
 	        }
 	      }
 	
@@ -3064,7 +3197,7 @@
           renderResultsPage(false);
 
           showResultsState('results');
-        } catch (e) { $('errorText').textContent = e.message; showResultsState('error') }
+        } catch (e) { $('errorText').textContent = window.t('system.error_indexing') + ' ' + e.message; showResultsState('error') }
       }
 
       function renderResultsPage(append = false) {
@@ -3123,7 +3256,7 @@
         if (scoreEl) { scoreEl.textContent = `${score}%`; scoreEl.title = `Relevance: ${score}%`; }
 
         if (matchEl) {
-          if (matchCount > 1) { matchEl.hidden = false; matchEl.textContent = `${matchCount} coincidencias`; }
+          if (matchCount > 1) { matchEl.hidden = false; matchEl.textContent = `${matchCount} ${window.t('results.matches')}`; }
           else matchEl.hidden = true;
         }
 
