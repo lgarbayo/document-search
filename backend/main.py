@@ -90,11 +90,15 @@ async def health_check():
 
 FRONTEND_PATH = "/app/frontend/index.html"
 FRONTEND_ASSETS_PATH = "/app/frontend/assets"
+FRONTEND_LOCALES_PATH = "/app/frontend/locales"
 
 # Montar activos estáticos (CSS, JS, Imágenes).
 # StaticFiles es eficiente para servir contenido que no cambia dinámicamente.
 if os.path.isdir(FRONTEND_ASSETS_PATH):
     app.mount("/assets", StaticFiles(directory=FRONTEND_ASSETS_PATH), name="assets")
+
+if os.path.isdir(FRONTEND_LOCALES_PATH):
+    app.mount("/locales", StaticFiles(directory=FRONTEND_LOCALES_PATH), name="locales")
 
 @app.get("/", tags=["Frontend"])
 async def serve_frontend():
